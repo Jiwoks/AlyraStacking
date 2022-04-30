@@ -1,1 +1,8 @@
 # AlyraStacking
+
+## Kovan
+### Tokens
+DAI: 0x04DF6e4121c27713ED22341E7c7Df330F56f289B
+
+### Aggregators
+DAI/ETH 0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541
