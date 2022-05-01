@@ -19,11 +19,14 @@ contract StackingTonted is Ownable {
 
 
 	function deposit(IERC20 _erc20Address, uint256 _amount) external {
-		stackers[msg.sender][_erc20Address] = _amount
+		_erc20Address.approve(address(this), _amount);
+		_erc20Address.transfer(address(this), _amount);
+		stackers[msg.sender][_erc20Address] += _amount;
 	}
 
 	function withdraw(IERC20 _erc20Address, uint256 _amount) external {
-
+		stackers[msg.sender][_erc20Address] -= _amount;
+		_erc20Address.transfer(msg.sender, _amount);
 	}
 
 }
