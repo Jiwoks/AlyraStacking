@@ -18,8 +18,8 @@ contract Stacking is Ownable {
   }
 
   struct PoolInfo {
-    uint256 lastRewardBlock;
-    uint256 accRewardPerShare;
+    uint256 lastRewardTimestamp;
+    uint256 totalRewardsPending;
   }
 
   mapping(IERC20 => address) public allowedERC20s;
@@ -27,14 +27,23 @@ contract Stacking is Ownable {
 
   mapping(address => mapping(IERC20 => ERC20Staked)) public stackers;
 
+  event PoolCreated(IERC20 token, string symbol);
+
+  event Deposited(IERC20 token, address sender, uint256 amount);
+
+  event Withdrawn(IERC20 token, address sender, uint256 amount);
+
+  event Claimed(IERC20 token, address sender, uint256 amount);
+
   constructor(uint256 _rewardPerSecond) {
     rewardsPerSecond = _rewardPerSecond;
     priceFeed = AggregatorV3Interface(0x9326BFA02ADD2366b30bacB125260Af641031331);
   }
 
   /// Owner acl an ERC20 token
-  function allowToken(IERC20 _tokenAddress, address _aggregator) onlyOwner public {
+  function addPool(IERC20 _tokenAddress, address _aggregator, string calldata symbol) onlyOwner public {
     allowedERC20s[_tokenAddress] = _aggregator;
+    emit PoolCreated(_tokenAddress, symbol);
   }
 
   function deposit(IERC20 _erc20Address, uint256 _amount) public {
@@ -59,7 +68,7 @@ contract Stacking is Ownable {
 
     ERC20Staked storage stacker = stackers[msg.sender][_erc20Address];
 
-    require(stacker.amount >= _amount, "You don't have this token");
+    require(stacker.amount >= _amount, "You don't have enough of this token");
 
     _erc20Address.transfer(msg.sender, _amount);
 
@@ -72,6 +81,10 @@ contract Stacking is Ownable {
   }
 
   function claim() public {
+
+  }
+
+  function poolInfo(address token) public view returns(uint256 tvl) {
 
   }
 }

@@ -1,0 +1,10 @@
+{
+  "kovan":{
+    "DAI": "0x4f96fe3b7a6cf9725f59d353f723c1bdb64ca6aa",
+    "LINK": "0xa36085F69e2889c224210F603D836748e7dC0088"
+  },
+  "rinkeby": {
+    "DAI": "0x95b58a6bff3d14b7db2f5cb5f0ad413dc2940658",
+    "LINK": "0x01BE23585060835E02B77ef475b0Cc51aA1e0709"
+  }
+}

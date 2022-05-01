@@ -1,0 +1,15 @@
+.Button {
+    padding: 10px 20px;
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    height: 35px;
+    color: #027980;
+    margin: 4px 0;
+}
+
+.Button.inverse {
+    background-color: #027980;
+    color: #fff;
+}

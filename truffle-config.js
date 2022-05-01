@@ -1,4 +1,6 @@
 const path = require("path");
+require('dotenv').config();
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 module.exports = {
   // See <http://truffleframework.com/docs/advanced/configuration>
@@ -8,7 +10,8 @@ module.exports = {
     develop: {
       host: "127.0.0.1",
       port: 7545,
-      network_id: "*"
+      network_id: "*",
+      provider: () => new HDWalletProvider([process.env.PRIVATE_KEY], "http://localhost:7545")
     }
   },
   compilers: {

@@ -1,0 +1,16 @@
+.Header {
+    display: flex;
+    width: 100%;
+    background: rgba(10, 10, 10, 0.2);
+    padding: 10px;
+}
+
+.Title {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.Title svg {
+    max-height: 100px;
+}
+
