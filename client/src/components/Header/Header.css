@@ -1,0 +1,15 @@
+.Header {
+	height: 7vh;
+	background-color: chocolate;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.Address {
+	background-color: coral;
+	margin-right: 10px;
+	padding: 5px 10px 5px 10px;
+	border-radius: 10px;
+}

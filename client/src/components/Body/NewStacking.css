@@ -1,0 +1,9 @@
+.NewStacking {
+	height: 10vh;
+	background-color: darkgreen;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	/* justify-items: center; */
+	align-items: center;
+}

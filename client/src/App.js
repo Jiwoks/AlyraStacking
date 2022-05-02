@@ -1,11 +1,22 @@
 import React, { Component } from "react";
 import StackingTonted from "./contracts/StackingTonted.json";
+import ERC20 from "./contracts/ERC20.json";
 import getWeb3 from "./getWeb3";
 
+import Header from "./components/Header/Header.js"
+import NewStacking from "./components/Body/NewStacking";
+
 import "./App.css";
+import ListStacking from "./components/Body/ListStacking";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  state = {
+    web3: null,
+    accounts: null,
+    contract: null,
+    blocStart: null,
+    pools: null,
+    };
 
   componentDidMount = async () => {
     try {
@@ -23,9 +34,30 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address,
       );
 
+      //tb: Get first block of the creation contract, for get events
+      const txCreation = await web3.eth.getTransactionReceipt(deployedNetwork.transactionHash);
+      const blocStart = txCreation.blockNumber;
+
+      const eventsDeposit = await instance.getPastEvents('Deposited',
+        {fromBlock: blocStart, toBlock: 'latest'})
+      const eventsWithdraw = await instance.getPastEvents('Withdrawn',
+        {fromBlock: blocStart, toBlock: 'latest'})
+      
+      let pools = new Map;
+      eventsDeposit.forEach(e => {
+        if (!pools[e.returnValues.token])
+          pools[e.returnValues.token] = parseFloat(web3.utils.fromWei(e.returnValues.amount));
+        else
+          pools[e.returnValues.token] += parseFloat(web3.utils.fromWei(e.returnValues.amount));
+      });
+      eventsWithdraw.forEach(e => {
+          pools[e.returnValues.token] -= parseFloat(web3.utils.fromWei(e.returnValues.amount));
+      });
+
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance });
+      this.setState({ web3, accounts, contract: instance, blocStart, pools });
+
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -35,23 +67,30 @@ class App extends Component {
     }
   };
 
+  deposit = async (token, amount) => {
+    const erc20Contract = await new this.state.web3.eth.Contract(ERC20.abi, token);
+    const weiAmount = this.state.web3.utils.toWei(amount);
+    const spender = this.state.contract._address;
+    await erc20Contract.methods.approve(spender, weiAmount).send({from: this.state.accounts[0]});
+    await this.state.contract.methods.deposit(token, weiAmount).send({from: this.state.accounts[0]});
+  }
 
   render() {
+
     if (!this.state.web3) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }
     return (
-      <div className="App">
-        <h1>Good to Go!</h1>
-        <p>Your Truffle Box is installed and ready.</p>
-        <h2>Smart Contract Example</h2>
-        <p>
-          If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
-        </p>
-        <p>
-          Try changing the value stored on <strong>line 42</strong> of App.js.
-        </p>
+      <div>
+        <Header
+          connected={this.state.accounts[0]}
+        />
+        <NewStacking
+          deposit={this.deposit}
+        />
+        <ListStacking
+          pools={this.state.pools}
+        />
       </div>
     );
   }
