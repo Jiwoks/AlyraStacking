@@ -20,10 +20,11 @@ contract Stacking is Ownable {
   struct PoolInfo {
     uint256 lastRewardTimestamp;
     uint256 totalRewardsPending;
+    uint256 tvl;
   }
 
   mapping(IERC20 => address) public allowedERC20s;
-  mapping(IERC20 => PoolInfo) pools;
+  mapping(IERC20 => PoolInfo) public pools;
 
   mapping(address => mapping(IERC20 => ERC20Staked)) public stackers;
 
@@ -48,6 +49,7 @@ contract Stacking is Ownable {
 
   function deposit(IERC20 _erc20Address, uint256 _amount) public {
     require(allowedERC20s[_erc20Address] != address(0x0), "This token has not been allowed yet");
+    require(_amount > 0, "Amount 0");
     ERC20Staked storage stacker = stackers[msg.sender][_erc20Address];
 
     // We already have a staking for this address
@@ -57,8 +59,9 @@ contract Stacking is Ownable {
 
     stacker.date = block.timestamp;
     stacker.amount += _amount;
-
     stacker.date = block.timestamp;
+
+    pools[_erc20Address].tvl += _amount;
 
     require(_erc20Address.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
   }
@@ -69,6 +72,7 @@ contract Stacking is Ownable {
     ERC20Staked storage stacker = stackers[msg.sender][_erc20Address];
 
     require(stacker.amount >= _amount, "You don't have enough of this token");
+    pools[_erc20Address].tvl -= _amount;
 
     _erc20Address.transfer(msg.sender, _amount);
 

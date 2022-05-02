@@ -70,6 +70,11 @@ async function getDepositedBalance(walletAddress, tokenAddress) {
     return result.amount;
 }
 
+async function getTVL(tokenAddress) {
+    const pool = await contractInstance.methods.pools(tokenAddress).call();
+    return pool.tvl;
+}
+
 async function deposit(walletAddress, tokenAddress, amount) {
     const web3Provider = await web3;
     const contractIERC20Instance = new web3Provider.eth.Contract(
@@ -95,5 +100,6 @@ export {
     getWalletBalance,
     getDepositedBalance,
     deposit,
-    withdraw
+    withdraw,
+    getTVL
 };

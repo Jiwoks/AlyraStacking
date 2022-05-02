@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import './Pool.css';
 import walletStore from "../../../../stores/wallet";
-import {deposit, withdraw, getWalletBalance, getDepositedBalance} from "../../../../helpers/contract";
+import {deposit, withdraw, getWalletBalance, getDepositedBalance, getTVL} from "../../../../helpers/contract";
 import Operation from "./Operation/Operation";
 import web3js from "web3";
 import {toast} from 'react-toastify';
@@ -12,6 +12,7 @@ function Pool({pool, ...props}) {
     const [depositedAmount, setDepositedAmount] = useState('-');
     const [valueDeposit, setValueDeposit] = useState(0);
     const [valueWithdraw, setValueWithdraw] = useState(0);
+    const [tvl, setTVL] = useState(0);
 
     const { address: walletAddress } = walletStore(state => ({address: state.address}));
 
@@ -42,6 +43,10 @@ function Pool({pool, ...props}) {
     }
 
     useEffect(() => {
+        getTVL(pool.token).then(tvl => {setTVL(web3js.utils.fromWei(tvl))});
+    }, []);
+
+    useEffect(() => {
         if (!walletAddress) {
             setWalletAmount('-');
             return;
@@ -68,7 +73,7 @@ function Pool({pool, ...props}) {
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
-                    <div>0</div>
+                    <div>{tvl}</div>
                 </div>
             </div>
             {opened &&
