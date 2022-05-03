@@ -95,11 +95,11 @@ contract("Stacking Test Suite", accounts => {
             const balanceAfter = new BN(await daiToken.balanceOf(user1));
             expect(balanceBefore.sub(balanceAfter)).to.be.bignumber.equal(new BN(100));
         });
-        it('should emit TokenDeposited event', async function () {
+        it('should emit "Deposit" event', async function () {
             await daiToken.approve(instance.address, 100, {from: user1});
             expectEvent(
                 await instance.deposit(dai, 100, {from: user1}),
-                'TokenDeposited',
+                'Deposit',
                 {token: dai, account: user1, amount: new BN(100)}
             );
         });
@@ -200,10 +200,10 @@ contract("Stacking Test Suite", accounts => {
             const balanceAfter = new BN(await daiToken.balanceOf(user1));
             expect(balanceAfter.sub(balanceBefore)).to.be.bignumber.equal(new BN(100));
         });
-        it('should emit TokenWithdrawed event', async function () {
+        it('should emit "Withdraw" event', async function () {
             expectEvent(
                 await instance.withdraw(dai, 100, {from: user1}),
-                'TokenWithdrawed',
+                'Withdraw',
                 {token: dai, account: user1, amount: new BN(100)}
             );
         });

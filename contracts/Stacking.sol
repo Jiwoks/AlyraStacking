@@ -29,8 +29,8 @@ contract Stacking is Ownable {
   mapping (address => mapping (IERC20 => Account)) accountData;
 
   event PoolCreated (IERC20 token, address oracle);
-  event TokenDeposited (IERC20 token, address account, uint256 amount);
-  event TokenWithdrawed (IERC20 token, address account, uint256 amount);
+  event Deposit (IERC20 token, address account, uint256 amount);
+  event Withdraw (IERC20 token, address account, uint256 amount);
 
   modifier onlyCreatedToken (IERC20 _token) {
     require(poolData[_token].oracle != address(0), 'Token not yet allowed');
@@ -65,7 +65,7 @@ contract Stacking is Ownable {
     account.lastRewardBlock = block.timestamp;
     pool.balance = pool.balance.add(_amount);
 
-    emit TokenDeposited (_token, msg.sender, _amount);
+    emit Deposit (_token, msg.sender, _amount);
   }
 
   function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
@@ -84,7 +84,7 @@ contract Stacking is Ownable {
       pool.balance = pool.balance.sub(_amount);
     }
 
-    emit TokenWithdrawed (_token, msg.sender, _amount);
+    emit Withdraw (_token, msg.sender, _amount);
   }
 
   function claim (IERC20 _token) external {
