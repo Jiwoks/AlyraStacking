@@ -13,9 +13,9 @@ const Xtz = artifacts.require("./Xtz.sol");
 module.exports = async (deployer) => {
   await deployer.deploy(CCCToken, 1000000000000);
   const myERC20 = await CCCToken.deployed();
-  await deployer.deploy(Dai, web3.utils.toWei('10000'), {from: process.env.OWNER_ADDRESS});
+  await deployer.deploy(Dai, web3.utils.toWei('10000'));
   const dai = await Dai.deployed();
-  await deployer.deploy(Xtz, web3.utils.toWei('10000'), {from: process.env.OWNER_ADDRESS});
+  await deployer.deploy(Xtz, web3.utils.toWei('10000'));
   const xtz = await Xtz.deployed();
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();

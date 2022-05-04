@@ -16,7 +16,7 @@ contract("Stacking Test Suite", accounts => {
     const xtzAggregator = accounts[4];
     let instance;
     let rewardToken;
-    const rewardDailyRate = 10;
+    const rewardPerSecond = 10;
 
     async function buildNewInstance () {
         return await Stacking.new(rewardToken.address, {from: owner});
@@ -55,11 +55,11 @@ contract("Stacking Test Suite", accounts => {
         });
 
         it('should reject for not owner caller', async function () {
-            await expectRevert( instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: user1}), 'Ownable: caller is not the owner' );
+            await expectRevert( instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: user1}), 'Ownable: caller is not the owner' );
         });
         it('should reject for token already added', async function () {
-            result = await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
-            await expectRevert( instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner}), 'Token already attached' );
+            result = await instance.createPool(dai, daiAggregator, rewardPerSecond, {from: owner});
+            await expectRevert( instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner}), 'Token already attached' );
         });
         it('should emit PoolCreated event', async function () {
             expectEvent( result, 'PoolCreated', {token: dai, oracle: daiAggregator} );
@@ -80,7 +80,7 @@ contract("Stacking Test Suite", accounts => {
             await expectRevert( instance.deposit(dai, 100, {from: user1}), 'Token not yet allowed' );
         });
         it('should reject for null amount', async function () {
-            await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
             await expectRevert( instance.deposit(dai, 0, {from: user1}), 'Only not null amount' );
         });
         it('should accept uint parameter and previously allowed token addresses only', async function () {
@@ -111,7 +111,7 @@ contract("Stacking Test Suite", accounts => {
         before(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user3});
             await instance.deposit(dai, 1000, {from: user3});
         });
@@ -139,7 +139,7 @@ contract("Stacking Test Suite", accounts => {
         before(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 100000, {from: user1});
             await daiToken.approve(instance.address, 100000, {from: user2});
             await instance.deposit(dai, 1000, {from: user1});
@@ -168,7 +168,7 @@ contract("Stacking Test Suite", accounts => {
         before(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
             await instance.deposit(dai, 1000, {from: user1});
         });
@@ -212,31 +212,91 @@ contract("Stacking Test Suite", accounts => {
 
     describe('Public: Test for claim rewards', function () {
 
-        before(async () => {
+        beforeEach(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardDailyRate, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
-            await instance.deposit(dai, 1000, {from: user1});
+            await daiToken.approve(instance.address, 1000, {from: user2});
         });
 
-        function evalRewards (nbDays) {
-            return nbDays * rewardDailyRate;
+        function evalRewards (nbSeconds) {
+            return nbSeconds * rewardPerSecond;
         }
 
-        it('should transfer rewards for 1 day', async function () {
+        it('should transfer rewards for 1 hour with 1 account inside the pool', async function () {
             const previousBalance = new BN(await rewardToken.balanceOf(user1));
-            await time.increase(time.duration.days(1))
-            await instance.claim(dai, {from: user1});
+            await instance.deposit(dai, 1000, {from: user1});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 1000, {from: user1});
             const newBalance = new BN(await rewardToken.balanceOf(user1));
-            expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(new BN(evalRewards(1) ));
+            expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(new BN(evalRewards(3600) ));
         });
-        it('should transfer rewards for 2 days', async function () {
-            const previousBalance = new BN(await rewardToken.balanceOf(user1));
-            await time.increase(time.duration.days(2))
-            await instance.claim(dai, {from: user1});
-            const newBalance = new BN(await rewardToken.balanceOf(user1));
-            expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(new BN(evalRewards(3)));
+        it('should transfer rewards for 1 hour with 2 accounts inside the pool as equal percent', async function () {
+            const previousBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const previousBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            await instance.deposit(dai, 1000, {from: user1});
+            await instance.deposit(dai, 1000, {from: user2});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 1000, {from: user1});
+            await instance.withdraw(dai, 1000, {from: user2});
+            const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(new BN(evalRewards(3600) / 2 ));
+            expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(new BN(evalRewards(3600) / 2 ));
+        });
+        it('should transfer rewards for 1 hour with 2 accounts inside the pool as equal percent but with different deposit and withdraw timestamp', async function () {
+            /*
+                h0: user1 deposit 1000dai
+                h1: user2 deposit 1000dai
+                h2: user1 withdraw 1000dai
+                h3: user2 withdraw 1000dai
+             */
+            const previousBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const previousBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            await instance.deposit(dai, 1000, {from: user1});
+            await time.increase(time.duration.hours(1));
+            await instance.deposit(dai, 1000, {from: user2});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 1000, {from: user1});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 1000, {from: user2});
+            const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(new BN(evalRewards(3600) + evalRewards(3600) / 2 ));
+            expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(new BN(evalRewards(3600) + evalRewards(3600) / 2 ));
+        });
+        it('should transfer rewards for 1 hour with 2 accounts inside the pool as different percent and different deposit and withdraw timestamp', async function () {
+            /*
+                h0: user1 deposit 1000dai   => tvl: 1000
+                h1: user2 deposit 500dai    => tvl: 1500
+                h2: user1 withdraw 500dai   => tvl: 1000
+                h3: user2 withdraw 500dai   => tvl: 500
+             */
+            const previousBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const previousBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            await instance.deposit(dai, 1000, {from: user1});
+            await time.increase(time.duration.hours(1));
+            await instance.deposit(dai, 500, {from: user2});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 500, {from: user1});
+            await time.increase(time.duration.hours(1));
+            await instance.withdraw(dai, 500, {from: user2});
+            const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
+            expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(
+                new BN(
+                        evalRewards(3600)                        // h0->h1: user1 = 100%                user2 = 0
+                        + (evalRewards(3600) * 2 / 3)            // h1->h2: user1 = 2/3                 user2 = 1/3
+                        + (0)                                             // h2->h3: user1 = 1/2 (not claimed)   user2 = 1/2    => rewards are not claimed
+            ));
+            expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(
+                new BN(
+                        0                                                 // h0->h1: user1 = 100%                user2 = 0
+                        + (evalRewards(3600) * 1 / 3)            // h1->h2: user1 = 2/3                 user2 = 1/3
+                        + (evalRewards(3600)  / 2 )              // h2->h3: user1 = 1/2 (not claimed)   user2 = 1/2
+                        + (0 )              // h3->h4: user1 = 1/2                 user2 = 1/2 (not claimed)
+            ));
         });
     })
 });

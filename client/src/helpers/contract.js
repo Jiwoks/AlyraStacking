@@ -66,12 +66,12 @@ async function getWalletBalance(walletAddress, tokenAddress) {
 }
 
 async function getDepositedBalance(walletAddress, tokenAddress) {
-    const result = await contractInstance.methods.accountData(walletAddress, tokenAddress).call();
+    const result = await contractInstance.methods.accounts(walletAddress, tokenAddress).call();
     return result.balance;
 }
 
 async function getTVL(tokenAddress) {
-    const pool = await contractInstance.methods.poolData(tokenAddress).call();
+    const pool = await contractInstance.methods.pools(tokenAddress).call();
     return pool.balance;
 }
 
