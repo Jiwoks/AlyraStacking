@@ -7,18 +7,18 @@ require('dotenv').config({
 
 const Stacking = artifacts.require("./Stacking.sol");
 const CCCToken = artifacts.require("./CCCToken.sol");
-const DAIToken = artifacts.require("./DAIToken.sol");
-const USDTToken = artifacts.require("./USDTToken.sol");
+const Dai = artifacts.require("./Dai.sol");
+const Xtz = artifacts.require("./Xtz.sol");
 
-module.exports = async function(deployer) {
-  await deployer.deploy(CCCToken, 100000000000, {from: process.env.OWNER_ADDRESS});
-  if (process.env.ENVIRONMENT !== 'production') {
-    await deployer.deploy(DAIToken, web3.utils.toWei('17000'), {from: process.env.OWNER_ADDRESS});
-    await deployer.deploy(USDTToken, web3.utils.toWei('1000'), {from: process.env.OWNER_ADDRESS});
-    await deployer.deploy(Stacking, web3.utils.toWei('150000'), {from: process.env.OWNER_ADDRESS});
-  }
-
-  const StackingInstance = await Stacking.deployed();
+module.exports = async (deployer) => {
+  await deployer.deploy(CCCToken, 1000000000000);
+  const myERC20 = await CCCToken.deployed();
+  await deployer.deploy(Dai, web3.utils.toWei('10000'), {from: process.env.OWNER_ADDRESS});
+  const dai = await Dai.deployed();
+  await deployer.deploy(Xtz, web3.utils.toWei('10000'), {from: process.env.OWNER_ADDRESS});
+  const xtz = await Xtz.deployed();
+  await deployer.deploy(Stacking, myERC20.address);
+  const myStacking = await Stacking.deployed();
 
   const aggregators = require(path.join(__dirname, '..', 'dataFeed', 'chainlink.json'));
   const contracts = require(path.join(__dirname, '..', 'dataFeed', 'contracts.json'));
@@ -32,7 +32,7 @@ module.exports = async function(deployer) {
 
         console.log('Adding token ' + tokenSymbol + ' ' + aggregators[process.env.NETWORK_NAME][process.env.CCC_PEG][tokenSymbol] + ' ' + contracts[process.env.NETWORK_NAME][tokenSymbol]);
 
-        await StackingInstance.addPool(contracts[process.env.NETWORK_NAME][tokenSymbol], aggregators[process.env.NETWORK_NAME][process.env.CCC_PEG][tokenSymbol], tokenSymbol);
+        await myStacking.createPool(contracts[process.env.NETWORK_NAME][tokenSymbol], aggregators[process.env.NETWORK_NAME][process.env.CCC_PEG][tokenSymbol], tokenSymbol);
       } catch (e) {
         console.warn(e);
       }
@@ -40,9 +40,7 @@ module.exports = async function(deployer) {
   }
 
   if (process.env.ENVIRONMENT !== 'production') {
-    const DAITokenInstance = await DAIToken.deployed();
-    await StackingInstance.addPool(DAITokenInstance.address, '0x000000000000000000000000000000000000dead', 'DAI');
-    const USDTTokenInstance = await USDTToken.deployed();
-    await StackingInstance.addPool(USDTTokenInstance.address, '0x000000000000000000000000000000000000dead', 'USDT');
+    await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead', '5', 'XTZ');
+    await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', '5', 'DAI');
   }
 };

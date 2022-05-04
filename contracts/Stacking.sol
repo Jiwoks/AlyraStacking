@@ -3,92 +3,120 @@ pragma solidity 0.8.13;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Stacking is Ownable {
 
-  AggregatorV3Interface internal priceFeed;
+  using SafeMath for uint256;
+  using SafeERC20 for IERC20;
 
-  uint256 public rewardsPerSecond;
+  IERC20 rewardToken;        // Token used for rewards
 
-  struct ERC20Staked {
-    uint256 date;
-    uint256 amount;
-    uint256 pendingRewards; // In case stacker adds more coin later we have to store how much reward he has accumulated before to add more
+  struct Pool {
+    address oracle;          // Address used for pool oracle
+    uint256 balance;         // total value locked inside the pool
+    uint256 rewardDailyRate; // Daily rewards rate by reward's token
   }
 
-  struct PoolInfo {
-    uint256 lastRewardTimestamp;
-    uint256 totalRewardsPending;
-    uint256 tvl;
+  struct Account {
+    uint256 balance;         // Amount of token provided by this account
+    uint256 rewardDebt;      // Reward debt
+    uint256 lastRewardBlock; // Last block used to distribute rewards
   }
 
-  mapping(IERC20 => address) public allowedERC20s;
-  mapping(IERC20 => PoolInfo) public pools;
+  mapping (IERC20 => Pool ) public poolData;
+  mapping (address => mapping (IERC20 => Account)) public accountData;
 
-  mapping(address => mapping(IERC20 => ERC20Staked)) public stackers;
+  event PoolCreated (IERC20 token, address oracle, string symbol);
+  event Deposit (IERC20 token, address account, uint256 amount);
+  event Withdraw (IERC20 token, address account, uint256 amount);
 
-  event PoolCreated(IERC20 token, string symbol);
-
-  event Deposited(IERC20 token, address sender, uint256 amount);
-
-  event Withdrawn(IERC20 token, address sender, uint256 amount);
-
-  event Claimed(IERC20 token, address sender, uint256 amount);
-
-  constructor(uint256 _rewardPerSecond) {
-    rewardsPerSecond = _rewardPerSecond;
-    priceFeed = AggregatorV3Interface(0x9326BFA02ADD2366b30bacB125260Af641031331);
+  modifier onlyCreatedToken (IERC20 _token) {
+    require(poolData[_token].oracle != address(0), 'Token not yet allowed');
+    _;
   }
 
-  /// Owner acl an ERC20 token
-  function addPool(IERC20 _tokenAddress, address _aggregator, string calldata symbol) onlyOwner public {
-    allowedERC20s[_tokenAddress] = _aggregator;
-    emit PoolCreated(_tokenAddress, symbol);
+  constructor (IERC20 _rewardToken) {
+    rewardToken = _rewardToken;
   }
 
-  function deposit(IERC20 _erc20Address, uint256 _amount) public {
-    require(allowedERC20s[_erc20Address] != address(0x0), "This token has not been allowed yet");
-    require(_amount > 0, "Amount 0");
-    ERC20Staked storage stacker = stackers[msg.sender][_erc20Address];
+  function createPool (IERC20 _token, address _oracle, uint256 _rewardDailyRate, string calldata symbol) onlyOwner external {
+    require (poolData[_token].oracle == address(0), 'Token already attached');
 
-    // We already have a staking for this address
-    if (stacker.date != 0) {
-      stacker.pendingRewards = (block.timestamp - stacker.date) * rewardsPerSecond;
+    poolData[_token].oracle = _oracle;
+    poolData[_token].rewardDailyRate = _rewardDailyRate;
+
+    emit PoolCreated (_token, _oracle, symbol);
+  }
+
+  function deposit (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
+    require(_amount > 0, 'Only not null amount');
+
+    Pool storage pool = poolData[_token];
+    Account storage account = accountData[msg.sender][_token];
+
+    // eval rewards for previously deposited tokens
+    _evalRewards(account, pool);
+
+    _token.safeTransferFrom(address(msg.sender), address(this), _amount);
+
+    account.balance = account.balance.add(_amount);
+    account.lastRewardBlock = block.timestamp;
+    pool.balance = pool.balance.add(_amount);
+
+    emit Deposit (_token, msg.sender, _amount);
+  }
+
+  function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
+    require(accountData[msg.sender][_token].balance > 0 && _amount <= accountData[msg.sender][_token].balance, 'Insufficient balance');
+
+    Pool storage pool = poolData[_token];
+    Account storage account = accountData[msg.sender][_token];
+
+    // eval rewards for previously deposited tokens
+    _evalRewards(account, pool);
+
+    // withdraw amount and update internal balances
+    if ( _amount > 0 ) {
+      _token.safeTransfer(address(msg.sender), _amount);
+      account.balance = account.balance.sub(_amount);
+      pool.balance = pool.balance.sub(_amount);
     }
 
-    stacker.date = block.timestamp;
-    stacker.amount += _amount;
-    stacker.date = block.timestamp;
-
-    pools[_erc20Address].tvl += _amount;
-
-    require(_erc20Address.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
+    emit Withdraw (_token, msg.sender, _amount);
   }
 
-  function withdraw(IERC20 _erc20Address, uint256 _amount) public {
-    require(_amount > 0, "You must provide an amount > 0");
+  function claim (IERC20 _token) external {
+    Pool storage pool = poolData[_token];
+    Account storage account = accountData[msg.sender][_token];
 
-    ERC20Staked storage stacker = stackers[msg.sender][_erc20Address];
-
-    require(stacker.amount >= _amount, "You don't have enough of this token");
-    pools[_erc20Address].tvl -= _amount;
-
-    _erc20Address.transfer(msg.sender, _amount);
-
-    // todo: send reward
-
+    // eval rewards for previously deposited tokens
+    _evalRewards(account, pool);
   }
 
-  function calculate(uint256 _seconds, IERC20 _tokenAddress) private {
-
+  function balanceOf (IERC20 _token) onlyCreatedToken(_token) external view returns (uint256) {
+    return accountData[msg.sender][_token].balance;
   }
 
-  function claim() public {
-
+  function tvlOf (IERC20 _token) external view returns (uint256) {
+    return poolData[_token].balance;
   }
 
-  function poolInfo(address token) public view returns(uint256 tvl) {
+  function safeRewardTransfer(address _to, uint256 _amount) internal {
+    rewardToken.safeTransfer(_to, _amount);
+  }
 
+  function _evalRewards(Account memory account, Pool memory pool) internal {
+    uint256 currentRewardBlock = block.timestamp;
+    uint256 nbDays = currentRewardBlock.sub(account.lastRewardBlock).div(86400);
+    uint256 pending = pool.rewardDailyRate.mul(nbDays);
+
+    if ( pending > 0 ) {
+      safeRewardTransfer(address(msg.sender), pending);
+      // store reward block and total rewards
+      account.lastRewardBlock = currentRewardBlock;
+      account.rewardDebt = account.rewardDebt.add(pending);
+    }
   }
 }
