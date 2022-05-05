@@ -22,7 +22,6 @@
     "@openzeppelin/test-helpers": "^0.5.15"
   },
   "scripts": {
-    "ganache": "node ganache/ganache.js",
     "compile": "truffle compile",
     "test": "truffle test",
     "hint": "solhint contracts/*.sol",
