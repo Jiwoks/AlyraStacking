@@ -3,15 +3,15 @@ const HDWalletProvider = require('@truffle/hdwallet-provider');
 require('dotenv').config();
 
 const provider_set = () => {
-    if (process.env.RPC === 'YES') {
+    if (process.env.MNEMONIC) {
         return new HDWalletProvider({
-            mnemonic: {phrase: `${process.env.MNEMONIC}`},
-            providerOrUrl: `${process.env.RPC}${process.env.INFURA_ID}`
+            mnemonic: {phrase: process.env.MNEMONIC},
+            providerOrUrl: process.env.RPC
         })
     } else {
         return new HDWalletProvider({
-            privateKeys: [`${process.env.PRIVATE_KEY}`],
-            providerOrUrl: `${process.env.RPC}${process.env.INFURA_ID}`
+            privateKeys: [process.env.PRIVATE_KEY],
+            providerOrUrl: process.env.RPC
         })
     }
 }
@@ -23,8 +23,7 @@ module.exports = {
     contracts_build_directory: path.join(__dirname, "client/src/contracts"),
     networks: {
         development: {
-            host: "127.0.0.1",
-            port: 8545,
+            provider: provider_set(),
             network_id: "*"
         },
         ropsten: {
