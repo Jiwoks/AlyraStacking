@@ -13,3 +13,8 @@
     background-color: #027980;
     color: #fff;
 }
+
+.Button:disabled {
+    background-color: #707a7a;
+    cursor: not-allowed;
+}

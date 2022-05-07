@@ -4,11 +4,9 @@ pragma solidity 0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Stacking is Ownable {
 
-  using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
   IERC20 rewardToken;        // Token used for rewards
@@ -42,7 +40,6 @@ contract Stacking is Ownable {
     rewardToken = _rewardToken;
   }
 
-
   function createPool (IERC20 _token, address _oracle, uint256 _rewardPerSecond, string calldata symbol) onlyOwner external {
     require (pools[_token].oracle == address(0), 'Token already attached');
     pools[_token].oracle = _oracle;
@@ -60,8 +57,8 @@ contract Stacking is Ownable {
       return;
     }
 
-    uint pendingRewards = currentRewardBlock.sub(pool.lastRewardBlock).mul(pool.rewardPerSecond);
-    pool.rewardPerShare = pool.rewardPerShare.add(pendingRewards.div(pool.balance));
+    uint pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
+    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards / pool.balance);
     pool.lastRewardBlock = currentRewardBlock;
   }
 
@@ -74,15 +71,15 @@ contract Stacking is Ownable {
     _updatePool(_token);
 
     if ( account.balance > 0 ) {
-      uint256 pending = account.balance.mul(pool.rewardPerShare).sub(account.rewardDebt);
+      uint256 pending = account.balance * pool.rewardPerShare  - account.rewardDebt;
       safeRewardTransfer(msg.sender, pending);
     }
 
     _token.safeTransferFrom(address(msg.sender), address(this), _amount);
 
-    account.balance = account.balance.add(_amount);
-    account.rewardDebt = account.balance.mul(pool.rewardPerShare);
-    pool.balance = pool.balance.add(_amount);
+    account.balance = account.balance + _amount;
+    account.rewardDebt = account.balance * pool.rewardPerShare;
+    pool.balance = pool.balance + _amount;
 
     emit Deposit (_token, msg.sender, _amount);
   }
@@ -95,17 +92,19 @@ contract Stacking is Ownable {
 
     _updatePool(_token);
 
-    uint256 pending = account.balance.mul(pool.rewardPerShare).sub(account.rewardDebt);
-    safeRewardTransfer(msg.sender, pending);
+    uint256 pending = account.balance * pool.rewardPerShare - account.rewardDebt;
+    if (pending > 0) {
+      safeRewardTransfer(msg.sender, pending);
+    }
 
     // withdraw amount and update internal balances
     if ( _amount > 0 ) {
       _token.safeTransfer(address(msg.sender), _amount);
-      account.balance = account.balance.sub(_amount);
-      pool.balance = pool.balance.sub(_amount);
+      account.balance = account.balance - _amount;
+      pool.balance = pool.balance - _amount;
     }
 
-    account.rewardDebt = account.rewardDebt.mul(pool.rewardPerShare);
+    account.rewardDebt = account.rewardDebt * pool.rewardPerShare;
 
     emit Withdraw (_token, msg.sender, _amount);
   }
