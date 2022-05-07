@@ -23,7 +23,7 @@ function Operation({availableTitle, availableAmount, availableTokenName, handleC
             <h2>{props.title}</h2>
             {availableTitle} {availableAmount} {availableTokenName}
             <AmountInput handleChange={handleChange} onClick={handleClickMax} value={value}/>
-            <Button onClick={handleClick} className={'Button inverse'}>{actionTitle}</Button>
+            <Button disabled={value<=0} onClick={handleClick} className={'Button inverse'}>{actionTitle}</Button>
         </div>
     );
 }
