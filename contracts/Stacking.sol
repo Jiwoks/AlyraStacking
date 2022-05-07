@@ -30,6 +30,7 @@ contract Stacking is Ownable {
   event PoolCreated (IERC20 token, address oracle, string symbol);
   event Deposit (IERC20 token, address account, uint256 amount);
   event Withdraw (IERC20 token, address account, uint256 amount);
+  event Claim (address account, uint256 amount);
 
   modifier onlyCreatedToken (IERC20 _token) {
     require(pools[_token].oracle != address(0), 'Token not yet allowed');
@@ -57,8 +58,8 @@ contract Stacking is Ownable {
       return;
     }
 
-    uint pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
-    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards / pool.balance);
+    uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
+    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e18 / pool.balance);
     pool.lastRewardBlock = currentRewardBlock;
   }
 
@@ -71,14 +72,14 @@ contract Stacking is Ownable {
     _updatePool(_token);
 
     if ( account.balance > 0 ) {
-      uint256 pending = account.balance * pool.rewardPerShare  - account.rewardDebt;
+      uint256 pending = (account.balance * pool.rewardPerShare) /  1e18  - account.rewardDebt;
       safeRewardTransfer(msg.sender, pending);
     }
 
     _token.safeTransferFrom(address(msg.sender), address(this), _amount);
 
     account.balance = account.balance + _amount;
-    account.rewardDebt = account.balance * pool.rewardPerShare;
+    account.rewardDebt = account.balance * pool.rewardPerShare /  1e18;
     pool.balance = pool.balance + _amount;
 
     emit Deposit (_token, msg.sender, _amount);
@@ -86,25 +87,25 @@ contract Stacking is Ownable {
 
   function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
     require(accounts[msg.sender][_token].balance > 0 && _amount <= accounts[msg.sender][_token].balance, 'Insufficient balance');
+    require(_amount > 0, "Amount 0");
 
     Pool storage pool = pools[_token];
     Account storage account = accounts[msg.sender][_token];
 
     _updatePool(_token);
 
-    uint256 pending = account.balance * pool.rewardPerShare - account.rewardDebt;
+    uint256 pending = account.balance * pool.rewardPerShare / 1e18 - account.rewardDebt;
+    account.balance = account.balance  - _amount;
+    pool.balance = pool.balance - _amount;
+    account.rewardDebt = account.balance * pool.rewardPerShare / 1e18;
+
     if (pending > 0) {
       safeRewardTransfer(msg.sender, pending);
+      emit Claim(msg.sender, pending);
     }
 
     // withdraw amount and update internal balances
-    if ( _amount > 0 ) {
-      _token.safeTransfer(address(msg.sender), _amount);
-      account.balance = account.balance - _amount;
-      pool.balance = pool.balance - _amount;
-    }
-
-    account.rewardDebt = account.rewardDebt * pool.rewardPerShare;
+    _token.safeTransfer(address(msg.sender), _amount);
 
     emit Withdraw (_token, msg.sender, _amount);
   }
@@ -119,6 +120,24 @@ contract Stacking is Ownable {
 
   function safeRewardTransfer(address _to, uint256 _amount) internal {
     rewardToken.safeTransfer(_to, _amount);
+  }
+
+  // View function to see pending Tokens on frontend.
+  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards, uint256 rewardPerShare, uint256 lastRewardBlock, uint256 currentBlock) {
+    Pool memory pool = pools[_token];
+    Account memory account = accounts[_user][_token];
+
+    if ( pool.balance == 0 ) {
+      return (0, 0, 0, 0);
+    }
+
+    uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
+    return (
+      account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt,
+      pool.rewardPerShare,
+      pool.lastRewardBlock,
+      block.timestamp
+    );
   }
 
 }
