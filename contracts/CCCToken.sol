@@ -34,7 +34,7 @@ contract CCCToken is IStackedERC20, ERC20, Ownable {
 
     function revokeAdmin (address _admin) external onlyOwner {
         require(_admin != owner(), 'Not allowed to self revoke');
-        admins[_admin] = false;
+        delete(admins[_admin]);
         emit AdminRevoked(_admin);
     }
 }

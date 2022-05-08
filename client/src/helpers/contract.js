@@ -99,6 +99,24 @@ async function withdraw(walletAddress, tokenAddress, amount) {
     await contractInstance.methods.withdraw(tokenAddress, weiAmount).send({from: walletAddress});
 }
 
+
+async function createPool(walletAddress, tokenAddress, oracleAddress, rewardsPerSecond, symbol) {
+    console.log('a');
+    return contractInstance.methods.createPool(tokenAddress, oracleAddress, rewardsPerSecond, symbol).send({from: walletAddress});
+}
+
+async function isOwner(walletAddress) {
+    if (!walletAddress) {
+        return false;
+    }
+    await loadContract();
+    const owner = await contractInstance.methods.owner().call();
+    return web3js.utils.toChecksumAddress(owner) === web3js.utils.toChecksumAddress(walletAddress);
+}
+
+/**
+ * CCC Token contract instance
+ */
 let CCCTokenContractInstance;
 
 /**
@@ -136,5 +154,7 @@ export {
     deposit,
     withdraw,
     getTVL,
-    getRewardTokenInfo
+    getRewardTokenInfo,
+    isOwner,
+    createPool
 };

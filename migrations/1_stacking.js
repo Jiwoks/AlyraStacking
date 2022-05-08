@@ -9,6 +9,7 @@ const Stacking = artifacts.require("./Stacking.sol");
 const CCCToken = artifacts.require("./CCCToken.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Xtz = artifacts.require("./Xtz.sol");
+const Usdt = artifacts.require("./Usdt.sol");
 
 module.exports = async (deployer) => {
   await deployer.deploy(CCCToken, web3.utils.toWei('1000000'));
@@ -17,6 +18,8 @@ module.exports = async (deployer) => {
   const dai = await Dai.deployed();
   await deployer.deploy(Xtz, web3.utils.toWei('1000000'));
   const xtz = await Xtz.deployed();
+  await deployer.deploy(Usdt, web3.utils.toWei('1000000'));
+  const usdt = await Usdt.deployed();
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
 

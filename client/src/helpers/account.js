@@ -8,7 +8,7 @@ const getAccount = async () => {
 const addToMetamask = async (e, tokenAddress, tokenSymbol) => {
     e.stopPropagation();
     try {
-        const result = window.ethereum.request({
+        window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
                 type: 'ERC20',

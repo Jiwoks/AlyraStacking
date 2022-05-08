@@ -130,7 +130,7 @@ contract Stacking is Ownable {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
-    if ( pool.balance == 0 ) {
+    if ( account.balance == 0 ) {
       return 0;
     }
 
