@@ -24,6 +24,8 @@
   "scripts": {
     "compile": "truffle compile",
     "test": "truffle test",
+    "test-statking": "truffle test test/stacking.js",
+    "test-token": "truffle test test/ccc_token.js",
     "hint": "solhint contracts/*.sol",
     "deploy": "truffle deploy",
     "deploy-ropsten": "truffle deploy --network ropsten",
