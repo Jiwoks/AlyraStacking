@@ -126,21 +126,16 @@ contract Stacking is Ownable {
   }
 
   // View function to see pending Tokens on frontend.
-  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards, uint256 rewardPerShare, uint256 lastRewardBlock, uint256 currentBlock) {
+  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
     if ( pool.balance == 0 ) {
-      return (0, 0, 0, 0);
+      return 0;
     }
 
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    return (
-      account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt,
-      pool.rewardPerShare,
-      pool.lastRewardBlock,
-      block.timestamp
-    );
+    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt;
   }
 
 }
