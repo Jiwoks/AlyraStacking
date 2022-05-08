@@ -12,6 +12,7 @@ function Wallet() {
        if (Cookies.get('connected')) {
             handleClick();
        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleClick = () => {

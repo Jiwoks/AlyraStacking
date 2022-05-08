@@ -28,3 +28,8 @@
     flex-direction: row;
     justify-content: space-around;
 }
+
+.MetamaskIcon {
+    vertical-align: middle;
+    margin-left: 10px;
+}

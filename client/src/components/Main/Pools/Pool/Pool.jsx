@@ -1,10 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import './Pool.css';
 import walletStore from "../../../../stores/wallet";
-import {deposit, withdraw, getWalletBalance, getDepositedBalance, getTVL} from "../../../../helpers/contract";
+import {
+    deposit,
+    withdraw,
+    getWalletBalance,
+    getDepositedBalance,
+    getTVL,
+} from "../../../../helpers/contract";
 import Operation from "./Operation/Operation";
 import web3js from "web3";
 import {toast} from 'react-toastify';
+import {addToMetamask} from "../../../../helpers/account";
+import {ReactComponent as MetamaskIcon} from "../../../../assets/images/metamask.svg"
 
 function Pool({pool, ...props}) {
     const [opened, setOpened] = useState(false);
@@ -21,6 +29,7 @@ function Pool({pool, ...props}) {
     }
 
     const handleDeposit = async () => {
+        setValueDeposit(0);
         await toast.promise(
             deposit(walletAddress, pool.token, valueDeposit),
             {
@@ -28,10 +37,12 @@ function Pool({pool, ...props}) {
                 success: 'Deposit executed 👌',
                 error: 'Deposit failed'
             }
-        )
+        );
+        await updatePool();
     }
 
     const handleWithdraw = async () => {
+        setValueWithdraw(0);
         await toast.promise(
             withdraw(walletAddress, pool.token, valueWithdraw),
             {
@@ -40,10 +51,17 @@ function Pool({pool, ...props}) {
                 error: 'Withdrawal failed'
             }
         );
+        await updatePool();
+    }
+
+    const updatePool = async () => {
+        getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
+        getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
     }
 
     useEffect(() => {
         getTVL(pool.token).then(tvl => {setTVL(web3js.utils.fromWei(tvl))});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -52,9 +70,8 @@ function Pool({pool, ...props}) {
             return;
         }
 
-        getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
-        getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
-
+        updatePool();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [walletAddress]);
 
     return (
@@ -62,6 +79,7 @@ function Pool({pool, ...props}) {
             <div className="PoolInfos" onClick={handleClick}>
                 <div className="PoolColumn">
                     {pool.symbol}
+                    <a className="MetamaskIcon" onClick={(e) => addToMetamask(e, pool.token, pool.symbol)} title={"Add " + pool.symbol + " to metamask"}><MetamaskIcon width={18} /></a>
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
