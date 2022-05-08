@@ -20,6 +20,9 @@ module.exports = async (deployer) => {
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
 
+  // Allow stacking contract to mint CCC Token
+  await myERC20.allowAdmin(myStacking.address);
+
   const aggregators = require(path.join(__dirname, '..', 'dataFeed', 'chainlink.json'));
   const contracts = require(path.join(__dirname, '..', 'dataFeed', 'contracts.json'));
 

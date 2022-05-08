@@ -1,5 +1,6 @@
 import stackingContract from '../contracts/Stacking.json';
 import ierc20Contract from '../contracts/IERC20.json';
+import CCCTokenContract from '../contracts/CCCToken.json';
 import contractStore from '../stores/contract';
 import web3 from "./web3";
 import web3js from 'web3';
@@ -75,6 +76,10 @@ async function getTVL(tokenAddress) {
     return pool.balance;
 }
 
+async function claimableRewards(walletAddress, tokenAddress) {
+    return await contractInstance.methods.claimable(tokenAddress, walletAddress).call();
+}
+
 async function deposit(walletAddress, tokenAddress, amount) {
     const web3Provider = await web3;
     const contractIERC20Instance = new web3Provider.eth.Contract(
@@ -94,12 +99,42 @@ async function withdraw(walletAddress, tokenAddress, amount) {
     await contractInstance.methods.withdraw(tokenAddress, weiAmount).send({from: walletAddress});
 }
 
+let CCCTokenContractInstance;
+
+/**
+ * Retrieve Token information from token SC
+ * @return {Promise<null|{symbol: *, address, decimals: *, name: *}>}
+ */
+async function getRewardTokenInfo() {
+    const web3Provider = await web3;
+    const networkId = await web3Provider.eth.net.getId();
+    const deployedNetwork = CCCTokenContract.networks[networkId];
+
+    if (!deployedNetwork || !deployedNetwork.address) {
+        return null;
+    }
+
+    CCCTokenContractInstance = new web3Provider.eth.Contract(
+        CCCTokenContract.abi,
+        deployedNetwork && deployedNetwork.address,
+    );
+
+    return {
+        symbol: await CCCTokenContractInstance.methods.symbol().call(),
+        decimals: await CCCTokenContractInstance.methods.decimals().call(),
+        name: await CCCTokenContractInstance.methods.name().call(),
+        address: deployedNetwork.address
+    }
+}
+
 export {
     loadContract,
     getPools,
     getWalletBalance,
     getDepositedBalance,
+    claimableRewards,
     deposit,
     withdraw,
-    getTVL
+    getTVL,
+    getRewardTokenInfo
 };
