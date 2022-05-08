@@ -19,11 +19,13 @@ contract("Stacking Test Suite", accounts => {
     const rewardPerSecond = 10;
 
     async function buildNewInstance () {
-        return await Stacking.new(rewardToken.address, {from: owner});
+        const i = await Stacking.new(rewardToken.address, {from: owner});
+        await rewardToken.allowAdmin(i.address, {from: owner});
+        return i;
     }
 
     before(async () => {
-        rewardToken = await CCCToken.new(new BN(100000000000), {from: owner});
+        rewardToken = await CCCToken.new(new BN(1000000000000), {from: owner});
         daiToken = await Dai.deployed();
         xtzToken = await Xtz.deployed();
         dai = daiToken.address;
