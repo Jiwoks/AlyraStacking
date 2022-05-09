@@ -1,0 +1,13 @@
+.NewPool {
+    padding: 40px;
+    min-width: 400px;
+}
+
+.NewPoolTitle {
+    text-align: center;
+    color: #024346;
+}
+
+.NewPoolButton {
+    width: 100%;
+}

@@ -1,9 +1,10 @@
 import React, {useEffect} from 'react';
 import './Wallet.css';
 import Cookies from 'js-cookie';
-import Button from "../Reusable/Button/Button";
+import Button from "@mui/material/Button";
 import walletStore from '../../stores/wallet';
 import {getAccount} from '../../helpers/account';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 function Wallet() {
     const { address, connect, disconnect } = walletStore(state => ({address: state.address, connect: state.connect, disconnect: state.disconnect}));
@@ -12,6 +13,7 @@ function Wallet() {
        if (Cookies.get('connected')) {
             handleClick();
        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleClick = () => {
@@ -31,7 +33,7 @@ function Wallet() {
 
     return (
         <div className="Wallet">
-            <Button onClick={handleClick}>{textButton}</Button>
+            <Button color="inverse" variant="contained" endIcon={<AccountBalanceWalletIcon />} onClick={handleClick}>{textButton}</Button>
         </div>
     );
 }

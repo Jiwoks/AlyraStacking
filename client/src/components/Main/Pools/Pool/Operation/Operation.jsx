@@ -1,8 +1,7 @@
 import React from 'react';
 import './Operation.css';
 import AmountInput from "../../../../Reusable/AmountInput/AmountInput";
-import Button from "../../../../Reusable/Button/Button";
-
+import Button from "@mui/material/Button";
 
 function Operation({availableTitle, availableAmount, availableTokenName, handleClick, actionTitle, setValue, value, ...props}) {
     const handleClickMax = () => {
@@ -23,7 +22,7 @@ function Operation({availableTitle, availableAmount, availableTokenName, handleC
             <h2>{props.title}</h2>
             {availableTitle} {availableAmount} {availableTokenName}
             <AmountInput handleChange={handleChange} onClick={handleClickMax} value={value}/>
-            <Button disabled={value<=0} onClick={handleClick} className={'Button inverse'}>{actionTitle}</Button>
+            <Button className="OperationButton" variant="contained" disabled={value<=0} onClick={handleClick} >{actionTitle}</Button>
         </div>
     );
 }

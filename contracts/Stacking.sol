@@ -4,12 +4,14 @@ pragma solidity 0.8.13;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./CCCToken.sol";
 
 contract Stacking is Ownable {
 
   using SafeERC20 for IERC20;
+  using SafeERC20 for IStackedERC20;
 
-  IERC20 rewardToken;        // Token used for rewards
+  IStackedERC20 rewardToken;        // Token used for rewards
 
   struct Pool {
     address oracle;          // Address used for pool oracle
@@ -37,7 +39,7 @@ contract Stacking is Ownable {
     _;
   }
 
-  constructor (IERC20 _rewardToken) {
+  constructor (IStackedERC20 _rewardToken) {
     rewardToken = _rewardToken;
   }
 
@@ -119,25 +121,21 @@ contract Stacking is Ownable {
   }
 
   function safeRewardTransfer(address _to, uint256 _amount) internal {
+    rewardToken.mint(_amount);
     rewardToken.safeTransfer(_to, _amount);
   }
 
   // View function to see pending Tokens on frontend.
-  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards, uint256 rewardPerShare, uint256 lastRewardBlock, uint256 currentBlock) {
+  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
-    if ( pool.balance == 0 ) {
-      return (0, 0, 0, 0);
+    if ( account.balance == 0 ) {
+      return 0;
     }
 
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    return (
-      account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt,
-      pool.rewardPerShare,
-      pool.lastRewardBlock,
-      block.timestamp
-    );
+    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt;
   }
 
 }

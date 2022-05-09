@@ -8,13 +8,16 @@ require('dotenv').config({
 const CCCToken = artifacts.require("./CCCToken.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Xtz = artifacts.require("./Xtz.sol");
+const Usdt = artifacts.require("./Usdt.sol");
 
-module.exports = async (deployer) => {
+module.exports = async (deployer, network, accounts) => {
   const myERC20 = await CCCToken.deployed();
   const dai = await Dai.deployed();
   const xtz = await Xtz.deployed();
+  const usdt = await Usdt.deployed();
 
-  await dai.transfer(process.env.OWNER_ADDRESS, web3.utils.toWei('1000'));
-  await myERC20.transfer(process.env.OWNER_ADDRESS, web3.utils.toWei('1000'));
-  await xtz.transfer(process.env.OWNER_ADDRESS, web3.utils.toWei('1000'));
+  await dai.transfer(accounts[0], web3.utils.toWei('1000'));
+  await myERC20.transfer(accounts[0], web3.utils.toWei('1000'));
+  await xtz.transfer(accounts[0], web3.utils.toWei('1000'));
+  await usdt.transfer(accounts[0], web3.utils.toWei('1000'));
 };

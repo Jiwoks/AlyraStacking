@@ -1,10 +1,22 @@
 import React, {useEffect, useState} from 'react';
 import './Pool.css';
 import walletStore from "../../../../stores/wallet";
-import {deposit, withdraw, getWalletBalance, getDepositedBalance, getTVL} from "../../../../helpers/contract";
+import {
+    deposit,
+    withdraw,
+    getWalletBalance,
+    getDepositedBalance,
+    getTVL,
+    claimableRewards,
+    getRewardTokenInfo
+} from "../../../../helpers/contract";
 import Operation from "./Operation/Operation";
 import web3js from "web3";
 import {toast} from 'react-toastify';
+import {addToMetamask} from "../../../../helpers/account";
+import {ReactComponent as MetamaskIcon} from "../../../../assets/images/metamask.svg"
+import {ReactComponent as ArrowUp} from "../../../../assets/images/arrow_up.svg"
+import {ReactComponent as ArrowDown} from "../../../../assets/images/arrow_down.svg"
 
 function Pool({pool, ...props}) {
     const [opened, setOpened] = useState(false);
@@ -12,7 +24,9 @@ function Pool({pool, ...props}) {
     const [depositedAmount, setDepositedAmount] = useState('-');
     const [valueDeposit, setValueDeposit] = useState(0);
     const [valueWithdraw, setValueWithdraw] = useState(0);
+    const [valueClaimable, setValueClaimable] = useState(0);
     const [tvl, setTVL] = useState(0);
+    const [rewardToken, setRewardToken] = useState(null);
 
     const { address: walletAddress } = walletStore(state => ({address: state.address}));
 
@@ -21,6 +35,7 @@ function Pool({pool, ...props}) {
     }
 
     const handleDeposit = async () => {
+        setValueDeposit(0);
         await toast.promise(
             deposit(walletAddress, pool.token, valueDeposit),
             {
@@ -28,10 +43,12 @@ function Pool({pool, ...props}) {
                 success: 'Deposit executed 👌',
                 error: 'Deposit failed'
             }
-        )
+        );
+        await updatePool();
     }
 
     const handleWithdraw = async () => {
+        setValueWithdraw(0);
         await toast.promise(
             withdraw(walletAddress, pool.token, valueWithdraw),
             {
@@ -40,10 +57,27 @@ function Pool({pool, ...props}) {
                 error: 'Withdrawal failed'
             }
         );
+        await updatePool();
+    }
+
+    const updatePool = async () => {
+        getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
+        getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
+        claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
     }
 
     useEffect(() => {
         getTVL(pool.token).then(tvl => {setTVL(web3js.utils.fromWei(tvl))});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    /**
+     * Get Reward token information
+     */
+    useEffect(() => {
+        (async () => {
+            setRewardToken(await getRewardTokenInfo());
+        })()
     }, []);
 
     useEffect(() => {
@@ -52,16 +86,33 @@ function Pool({pool, ...props}) {
             return;
         }
 
-        getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
-        getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
-
+        updatePool();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [walletAddress]);
+
+    /**
+     * Update regularly the value of claimable rewards
+     */
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (!depositedAmount) {
+                return;
+            }
+
+            claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+
+        }, 4000);
+        return () => {
+            clearInterval(interval);
+        }
+    }, []);
 
     return (
         <div className="Pool">
             <div className="PoolInfos" onClick={handleClick}>
                 <div className="PoolColumn">
                     {pool.symbol}
+                    <a className="MetamaskIcon" onClick={(e) => addToMetamask(e, pool.token, pool.symbol)} title={"Add " + pool.symbol + " to metamask"}><MetamaskIcon width={18} /></a>
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
@@ -74,6 +125,21 @@ function Pool({pool, ...props}) {
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
                     <div>{tvl}</div>
+                </div>
+                <div className="PoolColumn">
+                    <div className="PoolColumnTitle">Pending Rewards</div>
+                    <div>
+                        {rewardToken !== null &&
+                            <>
+                                {valueClaimable} {rewardToken.symbol}
+                                <a className="MetamaskIcon" onClick={(e) => addToMetamask(e, rewardToken.address, rewardToken.symbol)} title={"Add " + rewardToken.symbol + " to metamask"}><MetamaskIcon width={18} /></a>
+                            </>
+                        }
+                    </div>
+                </div>
+                <div className="UpDownArrow">
+                    {opened && <ArrowUp />}
+                    {!opened && <ArrowDown />}
                 </div>
             </div>
             {opened &&
