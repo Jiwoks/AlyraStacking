@@ -96,11 +96,11 @@ function Pool({pool, ...props}) {
      */
     useEffect(() => {
         const interval = setInterval(() => {
-            if (!depositedAmount) {
-                return;
+            if (depositedAmount > 0) {
+                claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
             }
 
-            claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+
 
         }, 4000);
         return () => {
