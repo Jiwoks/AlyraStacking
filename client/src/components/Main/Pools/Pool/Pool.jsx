@@ -64,6 +64,7 @@ function Pool({pool, ...props}) {
         getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
         getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
         claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+        getTVL(pool.token).then(tvl => setTVL(web3js.utils.fromWei(tvl)));
     }
 
     useEffect(() => {
