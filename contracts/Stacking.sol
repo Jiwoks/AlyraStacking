@@ -11,7 +11,7 @@ contract Stacking is Ownable {
   using SafeERC20 for IERC20;
   using SafeERC20 for IStackedERC20;
 
-  AggregatorV3Interface internal priceFeed;
+//  AggregatorV3Interface internal priceFeed;
 
   IStackedERC20 rewardToken;        // Token used for rewards
 
@@ -234,7 +234,14 @@ contract Stacking is Ownable {
     return price;
   }
 
-  function claim(IStackedERC20 _token, address _to) public {
+  function claim (IStackedERC20 _token) external {
+    _claim(_token, msg.sender);
+  }
+
+  function claim(IStackedERC20 _token, address _to) external {
+    _claim(_token, _to);
+  }
+  function _claim(IStackedERC20 _token, address _to) internal {
     Account storage account = accounts[msg.sender][_token];
     uint256 pending = account.rewardPending -  account.rewardDebt;
 
@@ -243,7 +250,7 @@ contract Stacking is Ownable {
     account.rewardPending = 0;
     account.rewardDebt = 0;
 
-    safeRewardTransfer(msg.sender, pending);
-    emit Claim(msg.sender, pending);
+    safeRewardTransfer(_to, pending);
+    emit Claim(_to, pending);
   }
 }

@@ -29,17 +29,17 @@ module.exports = {
             from: process.env.OWNER_ADDRESS
         },
         ropsten: {
-            provider: provider_set(process.env.RPCROPSTEN),
+            provider: () => provider_set(process.env.RPCROPSTEN),
             network_id: 3,
             from: process.env.OWNER_ADDRESS
         },
         kovan: {
-            provider: provider_set(process.env.RPCKOVAN),
+            provider: () => provider_set(process.env.RPCKOVAN),
             network_id: 42,
             from: process.env.OWNER_ADDRESS
         },
         rinkeby: {
-            provider: provider_set(process.env.RPCRINKEBY),
+            provider: () => provider_set(process.env.RPCRINKEBY),
             network_id: 4,
             from: process.env.OWNER_ADDRESS
         },
