@@ -61,7 +61,7 @@ contract Stacking is Ownable {
     rewardToken = _rewardToken;
   }
 
-  /**
+  /*
    * @notice Creation of a pool to allow users to stake their token
    * @notice The value of the token is peg with de Chainlink oracle
    * @notice Only the owner can create a pool
@@ -102,7 +102,7 @@ contract Stacking is Ownable {
     pool.lastRewardBlock = currentRewardBlock;
   }
 
-  /**
+  /*
    * @notice Deposit token to stake by the user
    * @notice Update the data of the pool
    * @notice Send current rewards if exists to the sender
@@ -134,7 +134,7 @@ contract Stacking is Ownable {
     emit Deposit (_token, msg.sender, _amount);
   }
 
-  /**
+  /*
    * @notice Withdraw the token staken by the user
    * @notice Update the data of the pool
    * @notice Send current rewards pending
@@ -144,7 +144,7 @@ contract Stacking is Ownable {
    *
    * @emits Deposit (_token, msg.sender, _amount);
    */
-  function Withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
+  function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
     require(accounts[msg.sender][_token].balance > 0 && _amount <= accounts[msg.sender][_token].balance, 'Insufficient balance');
     require(_amount > 0, "Amount 0");
 
@@ -208,8 +208,7 @@ contract Stacking is Ownable {
     rewardToken.safeTransfer(_to, _amount);
   }
 
-  // View function to see pending Tokens on frontend.
-  /**
+  /*
    * @dev function to see pending Tokens on frontend.
    *
    * @param _token  : token address of the pool to check the pending reward
@@ -229,5 +228,4 @@ contract Stacking is Ownable {
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
     return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt;
   }
-
 }
