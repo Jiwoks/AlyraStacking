@@ -101,13 +101,11 @@ function Pool({pool, ...props}) {
                 claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
             }
 
-
-
         }, 4000);
         return () => {
             clearInterval(interval);
         }
-    }, []);
+    }, [depositedAmount]);
 
     return (
         <div className="Pool">
