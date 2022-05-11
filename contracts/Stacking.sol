@@ -11,6 +11,8 @@ contract Stacking is Ownable {
   using SafeERC20 for IERC20;
   using SafeERC20 for IStackedERC20;
 
+  AggregatorV3Interface internal priceFeed;
+
   IStackedERC20 rewardToken;        // Token used for rewards
 
   /**
@@ -216,7 +218,6 @@ contract Stacking is Ownable {
    *
    * @return the pending reward
    */
-  // TODO named the returns variable
   function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
@@ -227,5 +228,13 @@ contract Stacking is Ownable {
 
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
     return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt;
+  }
+
+  function getDataFeed(IERC20 _token) external view returns (int) {
+    require (pools[_token].oracle != address(0), 'DataFeed not available');
+    AggregatorV3Interface priceFeed = AggregatorV3Interface(0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541);
+    ( /*uint80 roundID*/, int price, /*uint startedAt*/, /*uint timeStamp*/, /*uint80
+    answeredInRound*/ ) = priceFeed.latestRoundData();
+    return price;
   }
 }
