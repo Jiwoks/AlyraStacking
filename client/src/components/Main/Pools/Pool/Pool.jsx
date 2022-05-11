@@ -64,6 +64,7 @@ function Pool({pool, ...props}) {
         getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
         getDepositedBalance(walletAddress, pool.token).then(balance => setDepositedAmount(web3js.utils.fromWei(balance)));
         claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+        getTVL(pool.token).then(tvl => setTVL(web3js.utils.fromWei(tvl)));
     }
 
     useEffect(() => {
@@ -83,6 +84,7 @@ function Pool({pool, ...props}) {
     useEffect(() => {
         if (!walletAddress) {
             setWalletAmount('-');
+            setDepositedAmount('-');
             return;
         }
 
@@ -95,11 +97,11 @@ function Pool({pool, ...props}) {
      */
     useEffect(() => {
         const interval = setInterval(() => {
-            if (!depositedAmount) {
-                return;
+            if (depositedAmount > 0) {
+                claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
             }
 
-            claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+
 
         }, 4000);
         return () => {
