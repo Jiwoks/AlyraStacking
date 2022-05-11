@@ -37,6 +37,7 @@ contract Stacking is Ownable {
   struct Account {
     uint256 balance;         // Amount of token provided by this account
     uint256 rewardDebt;      // Reward debt amount
+    uint256 rewardPending;   // Reward pending amount
   }
 
   mapping (IERC20 => Pool ) public pools;
@@ -99,6 +100,7 @@ contract Stacking is Ownable {
       return;
     }
 
+    // Calculate pending rewards for the incentive token
     uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
     pool.rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e18 / pool.balance);
     pool.lastRewardBlock = currentRewardBlock;
@@ -123,8 +125,7 @@ contract Stacking is Ownable {
     _updatePool(_token);
 
     if ( account.balance > 0 ) {
-      uint256 pending = (account.balance * pool.rewardPerShare) /  1e18  - account.rewardDebt;
-      safeRewardTransfer(msg.sender, pending);
+      account.rewardPending = (account.balance * pool.rewardPerShare) /  1e18  - account.rewardDebt;
     }
 
     _token.safeTransferFrom(address(msg.sender), address(this), _amount);
@@ -161,8 +162,7 @@ contract Stacking is Ownable {
     account.rewardDebt = account.balance * pool.rewardPerShare / 1e18;
 
     if (pending > 0) {
-      safeRewardTransfer(msg.sender, pending);
-      emit Claim(msg.sender, pending);
+      account.rewardPending += pending;
     }
 
     // withdraw amount and update internal balances
@@ -222,12 +222,8 @@ contract Stacking is Ownable {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
-    if ( account.balance == 0 ) {
-      return 0;
-    }
-
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt;
+    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt + account.rewardPending;
   }
 
   function getDataFeed(IERC20 _token) external view returns (int) {
@@ -236,5 +232,18 @@ contract Stacking is Ownable {
     ( /*uint80 roundID*/, int price, /*uint startedAt*/, /*uint timeStamp*/, /*uint80
     answeredInRound*/ ) = priceFeed.latestRoundData();
     return price;
+  }
+
+  function claim(IStackedERC20 _token, address _to) public {
+    Account storage account = accounts[msg.sender][_token];
+    uint256 pending = account.rewardPending -  account.rewardDebt;
+
+    require(pending > 0, 'Insufficient rewards balance');
+
+    account.rewardPending = 0;
+    account.rewardDebt = 0;
+
+    safeRewardTransfer(msg.sender, pending);
+    emit Claim(msg.sender, pending);
   }
 }
