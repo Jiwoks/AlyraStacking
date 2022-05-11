@@ -102,7 +102,7 @@ contract Stacking is Ownable {
 
     // Calculate pending rewards for the incentive token
     uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
-    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e18 / pool.balance);
+    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e12 / pool.balance);
     pool.lastRewardBlock = currentRewardBlock;
   }
 
@@ -125,13 +125,13 @@ contract Stacking is Ownable {
     _updatePool(_token);
 
     if ( account.balance > 0 ) {
-      account.rewardPending = (account.balance * pool.rewardPerShare) /  1e18  - account.rewardDebt;
+      account.rewardPending += (account.balance * pool.rewardPerShare) /  1e12  - account.rewardDebt;
     }
 
     _token.safeTransferFrom(address(msg.sender), address(this), _amount);
 
     account.balance = account.balance + _amount;
-    account.rewardDebt = account.balance * pool.rewardPerShare /  1e18;
+    account.rewardDebt = account.balance * pool.rewardPerShare /  1e12;
     pool.balance = pool.balance + _amount;
 
     emit Deposit (_token, msg.sender, _amount);
@@ -156,14 +156,10 @@ contract Stacking is Ownable {
 
     _updatePool(_token);
 
-    uint256 pending = account.balance * pool.rewardPerShare / 1e18 - account.rewardDebt;
+    account.rewardPending += account.balance * pool.rewardPerShare / 1e12 - account.rewardDebt;
     account.balance = account.balance  - _amount;
     pool.balance = pool.balance - _amount;
-    account.rewardDebt = account.balance * pool.rewardPerShare / 1e18;
-
-    if (pending > 0) {
-      account.rewardPending += pending;
-    }
+    account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;
 
     // withdraw amount and update internal balances
     _token.safeTransfer(address(msg.sender), _amount);
@@ -223,7 +219,7 @@ contract Stacking is Ownable {
     Account memory account = accounts[_user][_token];
 
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e18 / pool.balance)) /  1e18 - account.rewardDebt + account.rewardPending;
+    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
   }
 
   function getDataFeed(IERC20 _token) external view returns (int) {
