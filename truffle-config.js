@@ -2,39 +2,51 @@ const path = require("path");
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 require('dotenv').config();
 
+const provider_set = (RPC) => {
+    if (process.env.MNEMONIC) {
+        return new HDWalletProvider({
+            mnemonic: {phrase: process.env.MNEMONIC},
+            providerOrUrl: RPC
+        })
+    } else {
+        return new HDWalletProvider({
+            privateKeys: [process.env.PRIVATE_KEY],
+            providerOrUrl: RPC
+        })
+    }
+}
+
+
 module.exports = {
     // See <http://truffleframework.com/docs/advanced/configuration>
     // to customize your Truffle configuration!
     contracts_build_directory: path.join(__dirname, "client/src/contracts"),
     networks: {
         development: {
-            provider: () => new HDWalletProvider({
-                mnemonic: {phrase: process.env.MNEMONIC},
-                providerOrUrl: "http://localhost:8545"
-            }),
-            network_id: "*",       // Any network (default: none)
+            host: '127.0.0.1',
+            port: 8545,
+            network_id: "*",
+            from: process.env.OWNER_ADDRESS
         },
         ropsten: {
-            provider : function() {return new HDWalletProvider({mnemonic:{phrase:`${process.env.MNEMONIC}`},providerOrUrl:`https://ropsten.infura.io/v3/${process.env.INFURA_ID}`})},
-            network_id:3,
-            from: '0x262c0A5B09Af5168710F2a4BCf33c35aA3E52c88'
+            provider: provider_set(process.env.RPCROPSTEN),
+            network_id: 3,
+            from: process.env.OWNER_ADDRESS
         },
         kovan: {
-            provider: function () {
-                return new HDWalletProvider({
-                    mnemonic: {phrase: `${process.env.MNEMONIC}`},
-                    providerOrUrl: `https://kovan.infura.io/v3/${process.env.INFURA_ID}`
-                })
-            },
+            provider: provider_set(process.env.RPCKOVAN),
             network_id: 42,
-            from: '0x262c0A5B09Af5168710F2a4BCf33c35aA3E52c88'
-        }
+            from: process.env.OWNER_ADDRESS
+        },
+        rinkeby: {
+            provider: provider_set(process.env.RPCRINKEBY),
+            network_id: 4,
+            from: process.env.OWNER_ADDRESS
+        },
     },
     compilers: {
         solc: {
             version: "0.8.13",    // Fetch exact version from solc-bin (default: truffle's version)
         }
     },
-
-    plugins: ["solidity-coverage"]
 };
