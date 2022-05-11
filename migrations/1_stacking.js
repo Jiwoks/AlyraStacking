@@ -46,7 +46,7 @@ module.exports = async (deployer) => {
   }
 
   if (process.env.ENVIRONMENT !== 'production') {
-    await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead', '5', 'XTZ');
-    await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', '5', 'DAI');
+    await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead', web3.utils.toWei('5'), 'XTZ');
+    await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', web3.utils.toWei('5'), 'DAI');
   }
 };
