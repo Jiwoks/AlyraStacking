@@ -26,7 +26,8 @@ module.exports = {
             host: '127.0.0.1',
             port: 8545,
             network_id: "*",
-            from: process.env.OWNER_ADDRESS
+            from: process.env.OWNER_ADDRESS,
+            gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
         },
         ropsten: {
             provider: () => provider_set(process.env.RPCROPSTEN),
