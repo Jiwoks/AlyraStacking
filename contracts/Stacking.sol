@@ -218,6 +218,10 @@ contract Stacking is Ownable {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
+    if (pool.lastRewardBlock == 0) {
+      return 0;
+    }
+
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
     return account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
   }
@@ -237,6 +241,7 @@ contract Stacking is Ownable {
   function claim(IStackedERC20 _token, address _to) external {
     _claim(_token, _to);
   }
+
   function _claim(IStackedERC20 _token, address _to) internal {
     Account storage account = accounts[msg.sender][_token];
     uint256 pending = account.rewardPending -  account.rewardDebt;
