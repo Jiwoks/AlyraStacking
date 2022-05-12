@@ -99,9 +99,11 @@ async function withdraw(walletAddress, tokenAddress, amount) {
     await contractInstance.methods.withdraw(tokenAddress, weiAmount).send({from: walletAddress});
 }
 
+async function claim(walletAddress, tokenAddress) {
+    return contractInstance.methods.claim(tokenAddress, walletAddress).send({from: walletAddress});
+}
 
 async function createPool(walletAddress, tokenAddress, oracleAddress, rewardsPerSecond, symbol) {
-    console.log('a');
     return contractInstance.methods.createPool(tokenAddress, oracleAddress, rewardsPerSecond, symbol).send({from: walletAddress});
 }
 
@@ -156,5 +158,6 @@ export {
     getTVL,
     getRewardTokenInfo,
     isOwner,
-    createPool
+    createPool,
+    claim
 };

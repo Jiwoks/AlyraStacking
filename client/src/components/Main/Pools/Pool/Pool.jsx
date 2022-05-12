@@ -17,6 +17,7 @@ import {addToMetamask} from "../../../../helpers/account";
 import {ReactComponent as MetamaskIcon} from "../../../../assets/images/metamask.svg"
 import {ReactComponent as ArrowUp} from "../../../../assets/images/arrow_up.svg"
 import {ReactComponent as ArrowDown} from "../../../../assets/images/arrow_down.svg"
+import Claim from "./Claim/Claim";
 
 function Pool({pool, ...props}) {
     const [opened, setOpened] = useState(false);
@@ -96,16 +97,17 @@ function Pool({pool, ...props}) {
      * Update regularly the value of claimable rewards
      */
     useEffect(() => {
-        const interval = setInterval(() => {
-            if (depositedAmount > 0) {
-                claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
-            }
+        if (!walletAddress) {
+            return;
+        }
 
+        const interval = setInterval(() => {
+            claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
         }, 4000);
         return () => {
             clearInterval(interval);
         }
-    }, [depositedAmount]);
+    }, [depositedAmount, walletAddress]);
 
     return (
         <div className="Pool">
@@ -153,6 +155,7 @@ function Pool({pool, ...props}) {
                         value={valueDeposit}
                         setValue={setValueDeposit}
                     />
+                    <Claim claimable={valueClaimable} pool={pool} />
                     <Operation
                         availableAmount={depositedAmount}
                         availableTitle="Deposited"
