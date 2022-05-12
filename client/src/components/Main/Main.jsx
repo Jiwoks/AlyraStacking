@@ -24,7 +24,6 @@ function Main() {
     }
 
     const handleClosePopup = () => {
-        console.log('close')
         setPopupOpened(false);
     }
 
