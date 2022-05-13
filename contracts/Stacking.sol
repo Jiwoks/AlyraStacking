@@ -82,7 +82,6 @@ contract Stacking is Ownable {
     require (pools[_token].oracle == address(0), 'Token already attached');
     pools[_token].oracle = _oracle;
     pools[_token].rewardPerSecond = _rewardPerSecond;
-    pools[_token].lastRewardBlock = block.timestamp;
 
     emit PoolCreated (_token, _oracle, symbol);
   }
@@ -149,8 +148,8 @@ contract Stacking is Ownable {
    * @emits Deposit (_token, msg.sender, _amount);
    */
   function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
-    require(accounts[msg.sender][_token].balance > 0 && _amount <= accounts[msg.sender][_token].balance, 'Insufficient balance');
     require(_amount > 0, "Amount 0");
+    require(accounts[msg.sender][_token].balance >= _amount, 'Insufficient balance');
 
     Pool storage pool = pools[_token];
     Account storage account = accounts[msg.sender][_token];
@@ -159,7 +158,7 @@ contract Stacking is Ownable {
 
     account.rewardPending += account.balance * pool.rewardPerShare / 1e12 - account.rewardDebt;
     account.balance = account.balance  - _amount;
-    pool.balance = pool.balance - _amount;
+    pool.balance -= _amount;
     account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;
 
     // withdraw amount and update internal balances
@@ -215,18 +214,21 @@ contract Stacking is Ownable {
    *
    * @return the pending reward
    */
-  function claimable(IERC20 _token, address _user) external returns (uint256 rewards) {
+  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
     Pool memory pool = pools[_token];
-    Account memory account = accounts[_user][_token];
-
-    _updatePool(_token);
 
     if (pool.balance == 0) {
       return 0;
     }
 
+    // Calculate pending rewards for the pool
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    return account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
+    uint256 rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e12 / pool.balance);
+
+    Account memory account = accounts[_user][_token];
+    uint256 pending = account.balance * rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
+
+    return pending;
   }
 
   function getDataFeed(IERC20 _token) external view returns (int) {
@@ -246,13 +248,14 @@ contract Stacking is Ownable {
   }
 
   function _claim(IStackedERC20 _token, address _to) internal {
+    _updatePool(_token);
+
     Pool memory pool = pools[_token];
+
     Account storage account = accounts[msg.sender][_token];
+    uint256 pending = account.balance * pool.rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
 
-    uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    uint256 pending = account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
-
-//    require(pending > 0, 'Insufficient rewards balance');
+    require(pending > 0, 'Insufficient rewards balance');
 
     account.rewardPending = 0;
     account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;
