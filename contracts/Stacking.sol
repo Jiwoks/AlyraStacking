@@ -82,6 +82,7 @@ contract Stacking is Ownable {
     require (pools[_token].oracle == address(0), 'Token already attached');
     pools[_token].oracle = _oracle;
     pools[_token].rewardPerSecond = _rewardPerSecond;
+    pools[_token].lastRewardBlock = block.timestamp;
 
     emit PoolCreated (_token, _oracle, symbol);
   }
@@ -214,11 +215,13 @@ contract Stacking is Ownable {
    *
    * @return the pending reward
    */
-  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
+  function claimable(IERC20 _token, address _user) external returns (uint256 rewards) {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
-    if (pool.lastRewardBlock == 0) {
+    _updatePool(_token);
+
+    if (pool.balance == 0) {
       return 0;
     }
 
