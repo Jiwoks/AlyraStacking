@@ -243,15 +243,13 @@ contract Stacking is Ownable {
   }
 
   function _claim(IStackedERC20 _token, address _to) internal {
-    _updatePool(_token);
-
     Pool memory pool = pools[_token];
-
     Account storage account = accounts[msg.sender][_token];
+
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
     uint256 pending = account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
 
-    require(pending > 0, 'Insufficient rewards balance');
+//    require(pending > 0, 'Insufficient rewards balance');
 
     account.rewardPending = 0;
     account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;

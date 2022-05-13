@@ -4,6 +4,7 @@ const Dai = artifacts.require("./Dai.sol");
 const Xtz = artifacts.require("./Xtz.sol");
 const { BN, time, expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
+const {duration} = require("@openzeppelin/test-helpers/src/time");
 
 contract("Stacking Test Suite", accounts => {
 
@@ -212,7 +213,171 @@ contract("Stacking Test Suite", accounts => {
 
     });
 
-    describe('Public: Test for claim rewards', function () {
+    describe('Public: Test for claimable rewards', function () {
+
+        let previousBalance;
+
+        function evalRewards (nbSeconds) {
+            return nbSeconds * rewardPerSecond;
+        }
+
+        beforeEach(async () => {
+            instance = await buildNewInstance();
+            await rewardToken.transfer(instance.address, new BN(1000000000));
+            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
+            await daiToken.approve(instance.address, 1000, {from: user1});
+            await daiToken.approve(instance.address, 1000, {from: user2});
+
+            const previousBalance = new BN(await rewardToken.balanceOf(user1));
+        });
+
+        describe('tvl: user1 (0%)', () => {
+            it('should return null for user with null balance', async () => {
+                expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            });
+            it('should return null for user with null balance after 1 hour', async () => {
+                await time.increase(time.duration.hours(1));
+                expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            });
+            it('should return null for user with null balance after 10 hours', async () => {
+                await time.increase(time.duration.hours(10));
+                expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            });
+
+        });
+
+        describe('tvl: user1 (100%)', () => {
+
+            beforeEach(async () => {
+                await instance.deposit(dai, 1000, {from: user1});
+            });
+
+            it('should return rewards for user 1 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration)));
+            });
+            it('should return rewards for user 2 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(0));
+            });
+            it('should return rewards for user 1 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration)));
+            });
+            it('should return rewards for user 2 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(0));
+            });
+        });
+
+        describe('tvl: user1 (50%) | user2 (50%)', () => {
+            beforeEach(async () => {
+                await instance.deposit(dai, 1000, {from: user1});
+                await instance.deposit(dai, 1000, {from: user2});
+            });
+
+            it('should return rewards for user 1 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 2));
+            });
+            it('should return rewards for user 2 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 2));
+            });
+            it('should return rewards for user 1 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 2));
+            });
+            it('should return rewards for user 2 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 2));
+            });
+        });
+
+        describe('tvl: user1 (1/3) | user2 (2/3)', () => {
+            beforeEach(async () => {
+                await instance.deposit(dai, 333, {from: user1});
+                await instance.deposit(dai, 666, {from: user2});
+            });
+
+            it('should return rewards for user 1 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 3));
+            });
+            it('should return rewards for user 2 after 1 hour', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(1));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) * 2 / 3));
+            });
+            it('should return rewards for user 1 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) / 3));
+            });
+            it('should return rewards for user 2 after 10 hours', async () => {
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(10));
+                const claimable = await instance.claimable(dai, user2);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration) * 2 / 3 ));
+            });
+        });
+
+        describe.only('tvl: user1 (100%)', () => {
+            beforeEach(async () => {
+                await instance.deposit(dai, 1000, {from: user1});
+            });
+
+            it('should decrease rewards remaining after a previous claimed', async () => {
+                await time.increase(time.duration.hours(1));
+
+                const i = await instance.accounts(user1, dai);
+
+                // console.log({balance : new BN(i.balance).toString(), rewardDebt: new BN(i.rewardDebt).toString(), rewardPending: new BN(i.rewardPending).toString()});
+
+                await instance.claim(dai);
+                const latest = await time.latest();
+                await time.increase(time.duration.hours(2));
+                const claimable = await instance.claimable(dai, user1);
+                const duration = await time.latest() - latest;
+                expect(claimable).to.be.bignumber.equal(new BN(evalRewards(duration)));
+            });
+
+        });
+    });
+
+    describe('Public: Test to claim rewards', function () {
 
         beforeEach(async () => {
             instance = await buildNewInstance();
@@ -226,16 +391,25 @@ contract("Stacking Test Suite", accounts => {
             return nbSeconds * rewardPerSecond;
         }
 
-        it('should transfer rewards for 1 hour with 1 account inside the pool', async function () {
-            const previousBalance = new BN(await rewardToken.balanceOf(user1));
-            await instance.deposit(dai, 1000, {from: user1});
-            await time.increase(time.duration.hours(1));
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(evalRewards(3600)));
-            await instance.withdraw(dai, 1000, {from: user1});
-            const newBalance = new BN(await rewardToken.balanceOf(user1));
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
-            expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(new BN(evalRewards(3600) ));
+        describe('should transfer rewards for 1 hour with 1 account inside the pool', () => {
+
+            before(async () => {
+                const previousBalance = new BN(await rewardToken.balanceOf(user1));
+                await instance.deposit(dai, 1000, {from: user1});
+                await time.increase(time.duration.hours(1));
+            })
+
+            it('should claimable', async function () {
+
+                // expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(evalRewards(3600)));
+                await instance.withdraw(dai, 1000, {from: user1});
+                const newBalance = new BN(await rewardToken.balanceOf(user1));
+                expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+                expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(new BN(evalRewards(3600) ));
+            });
         });
+
+
         it('should transfer rewards for 1 hour with 2 accounts inside the pool as equal percent', async function () {
             const previousBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
             const previousBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
