@@ -24,7 +24,7 @@ function NewPool({closePopup}) {
             web3js.utils.isAddress(contract) &&
             web3js.utils.isAddress(oracle) &&
             symbol !== "" &&
-            (parseInt(decimalsOracle) === 12 || parseInt(decimalsOracle) === 18 )
+            (parseInt(decimalsOracle) > 0)
         )
         {
             setSubmitEnabled(true);
