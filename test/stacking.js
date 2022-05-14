@@ -100,7 +100,7 @@ contract("Stacking Test Suite", accounts => {
         });
     })
 
-    describe('Owner: Test to attach tokens', function () {
+    describe('Owner: Test to create pools', function () {
 
         let result;
 
@@ -110,6 +110,9 @@ contract("Stacking Test Suite", accounts => {
 
         it('should reject for not owner caller', async function () {
             await expectRevert( instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: user1}), 'Ownable: caller is not the owner' );
+        });
+        it('should reject for not owner caller', async function () {
+            await expectRevert( instance.createPool(dai, daiAggregator, 0, rewardPerSecond, 'DAI', {from: owner}), 'Decimal must be greater than 0' );
         });
         it('should reject for token already added', async function () {
             result = await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, {from: owner});
@@ -170,8 +173,11 @@ contract("Stacking Test Suite", accounts => {
             await instance.deposit(dai, 1000, {from: user1});
         });
 
-        it('should reject for negatif amount', async function () {
+        it('should reject for negative amount', async function () {
             await expectRevert( instance.withdraw(dai, -10, {from: user1}), 'value out-of-bounds (argument="_amount", value=-10, code=INVALID_ARGUMENT' );
+        });
+        it('should reject for 0 amount', async function () {
+            await expectRevert( instance.withdraw(dai, 0, {from: user1}), 'Amount 0' );
         });
         it('should reject for token not yet attached', async function () {
             await expectRevert( instance.withdraw(xtz, 100, {from: user1}), 'Token not yet allowed' );
@@ -378,6 +384,10 @@ contract("Stacking Test Suite", accounts => {
             await daiToken.approve(instance.address, 1000, {from: user2});
         });
 
+        it('should revert if there is no nothing to claim', async () => {
+            await expectRevert(instance.claim(dai, {from: user1}), 'Insufficient rewards balance');
+        });
+
         it('should transfer rewards for 1 hour with 1 account inside the pool', async () => {
 
             const previousBalance = new BN(await rewardToken.balanceOf(user1));
@@ -392,7 +402,6 @@ contract("Stacking Test Suite", accounts => {
             const newBalance = new BN(await rewardToken.balanceOf(user1));
             expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(evalRewards(3600));
         });
-
 
         it('should transfer rewards for 1 hour with 2 accounts inside the pool as equal percent', async function () {
             const previousBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
@@ -413,6 +422,7 @@ contract("Stacking Test Suite", accounts => {
             expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(3600, .5));
             expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3600, .5));
         });
+
         it('should transfer rewards for 1 hour with 2 accounts inside the pool as equal percent but with different deposit and withdraw timestamp', async function () {
             /*
                 h0: user1 deposit 1000dai
@@ -443,6 +453,7 @@ contract("Stacking Test Suite", accounts => {
             expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
             expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
         });
+
         it('should transfer rewards for 1 hour with 2 accounts inside the pool as different percent and different deposit and withdraw timestamp', async function () {
             /*
                 h0: user1 deposit 1000dai   => tvl: 1000
@@ -521,6 +532,11 @@ contract("Stacking Test Suite", accounts => {
     });
 
     describe('Public: getDataFeed', function () {
+
+        it('should reject if datafeed is not set', async function() {
+            instance = await buildNewInstance();
+            await expectRevert(instance.getDataFeed(dai, {from: user1}), 'DataFeed not available');
+        });
 
         it('should return the correct oracle price', async function () {
             instance = await buildNewInstance();

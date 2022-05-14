@@ -87,7 +87,7 @@ contract Stacking is Ownable {
         string calldata symbol
     ) external onlyOwner {
         require(pools[_token].oracle == address(0), "Token already attached");
-        require(_decimalOracle > 0, "Decimal must be bigger than 0");
+        require(_decimalOracle > 0, "Decimal must be greater than 0");
 
         pools[_token].oracle = _oracle;
         pools[_token].decimalOracle = _decimalOracle;
