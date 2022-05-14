@@ -260,7 +260,6 @@ contract("Stacking Test Suite", accounts => {
                 await time.increase(time.duration.hours(1));
                 const claimable = await instance.claimable(dai, user1);
                 const duration = await time.latest() - poolStartedAt;
-                console.log('poolStartedAt', poolStartedAt, 'duration', duration);
                 expect(claimable).to.be.bignumber.equal(evalRewards(duration));
             });
             it('should return rewards for user 2 after 1 hour', async () => {
