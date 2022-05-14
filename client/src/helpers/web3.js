@@ -1,4 +1,5 @@
 import Web3 from "web3";
+import walletStore from "../stores/wallet";
 
 const web3 = () =>
   new Promise((resolve, reject) => {
@@ -34,7 +35,9 @@ const web3 = () =>
           }
 
 
-          //window.ethereum.on('accountsChanged', accountChanged)
+          window.ethereum.on('accountsChanged', (account) => {
+            walletStore.getState().connect(account[0]);
+          });
 
           resolve(web3);
         } catch (error) {
