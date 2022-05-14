@@ -261,13 +261,13 @@ contract Stacking is Ownable {
         (
             ,
             /*uint80 roundID*/
-            int256 price, /*uint startedAt*/ /*uint timeStamp*/ /*uint80
+            int256 aggregatorPrice, /*uint startedAt*/ /*uint timeStamp*/ /*uint80
     answeredInRound*/
             ,
             ,
 
         ) = priceFeed.latestRoundData();
-        return (price, pools[_token].decimalOracle);
+        return (aggregatorPrice, pools[_token].decimalOracle);
     }
 
     /*
