@@ -7,246 +7,315 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./CCCToken.sol";
 
 contract Stacking is Ownable {
+    using SafeERC20 for IERC20;
+    using SafeERC20 for IStackedERC20;
 
-  using SafeERC20 for IERC20;
-  using SafeERC20 for IStackedERC20;
+    //  AggregatorV3Interface internal priceFeed;
 
-//  AggregatorV3Interface internal priceFeed;
+    // Token used for rewards
+    IStackedERC20 private rewardToken;
 
-  IStackedERC20 rewardToken;        // Token used for rewards
-
-  /**
-   * @param oracle          : Address used for pool oracle
-   * @param balance         : Total value locked inside the pool
-   * @param decimalOracle   : decimals of token oracle
-   * @param rewardPerShare  : Rewards to distribute per share
-   * @param rewardPerSecond : Rewards to distribute per second
-   * @param lastRewardBlock : Last block timestamp where rewards are evaluated
-   */
-  // TODO decimalOracle to uint1?
-  struct Pool {
-    address oracle;
-    uint256 decimalOracle;
-    uint256 balance;
-    uint256 rewardPerShare;
-    uint256 rewardPerSecond;
-    uint256 lastRewardBlock;
-  }
-
-  /**
-   * @param balance   : Amount of token provided by this account
-   * @param rewardDebt: Reward debt amount
-   */
-  struct Account {
-    uint256 balance;        // Amount of token provided by this account
-    uint256 rewardDebt;      // Reward debt amount
-    uint256 rewardPending;   // Reward pending amount
-  }
-
-  mapping (IERC20 => Pool ) public pools;
-
-  // @dev [msg.sender][token] = {balance, rewardDebt}
-  mapping (address => mapping (IERC20 => Account)) public accounts;
-
-  event PoolCreated (IERC20 token, address oracle, string symbol);
-  event Deposit (IERC20 token, address account, uint256 amount);
-  event Withdraw (IERC20 token, address account, uint256 amount);
-  event Claim (address account, uint256 amount);
-
-  /**
-   * @notice Check if the token pool exists
-   *
-   * @param _token  : token address to check
-   */
-  modifier onlyCreatedToken (IERC20 _token) {
-    require(pools[_token].oracle != address(0), 'Token not yet allowed');
-    _;
-  }
-
-  constructor (IStackedERC20 _rewardToken) {
-    rewardToken = _rewardToken;
-  }
-
-  /*
-   * @notice Creation of a pool to allow users to stake their token
-   * @notice The value of the token is peg with de Chainlink oracle
-   * @notice Only the owner can create a pool
-   *
-   * @param _token          : address of the token put in pool
-   * @param _oracle         : address of the Chainlink oracle for this token
-   * @param decimalOracle   : decimals of token oracle
-   * @param _rewardPerSecond: reward per second for this pool
-   * @param symbol          : symbol of the token
-   *
-   * @emits PoolCreated (_token, _oracle, symbol).
-   */
-  function createPool (
-    IERC20 _token,
-    address _oracle,
-    uint256 _decimalOracle,
-    uint256 _rewardPerSecond,
-    string calldata symbol
-    ) onlyOwner external {
-
-    require (pools[_token].oracle == address(0), 'Token already attached');
-    require (_decimalOracle > 0, 'Decimal must be bigger than 0');
-
-    pools[_token].oracle = _oracle;
-    pools[_token].decimalOracle = _decimalOracle;
-    pools[_token].rewardPerSecond = _rewardPerSecond;
-
-    emit PoolCreated (_token, _oracle, symbol);
-  }
-
-  /**
-   * @notice Update the data of the pool
-   *
-   * @param _token          : address of the token where the pool must be update
-   */
-  function _updatePool (IERC20 _token) internal {
-    Pool storage pool = pools[_token];
-    uint256 currentRewardBlock = block.timestamp;
-
-    if ( pool.balance == 0 ) {
-      pool.lastRewardBlock = currentRewardBlock;
-      return;
+    /**
+     * @param oracle          : Address used for pool oracle
+     * @param balance         : Total value locked inside the pool
+     * @param decimalOracle   : decimals of token oracle
+     * @param rewardPerShare  : Rewards to distribute per share
+     * @param rewardPerSecond : Rewards to distribute per second
+     * @param lastRewardBlock : Last block timestamp where rewards are evaluated
+     */
+    // TODO decimalOracle to uint1?
+    struct Pool {
+        address oracle;
+        uint256 decimalOracle;
+        uint256 balance;
+        uint256 rewardPerShare;
+        uint256 rewardPerSecond;
+        uint256 lastRewardBlock;
     }
 
-    // Calculate pending rewards for the incentive token
-    uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) * pool.rewardPerSecond;
-    pool.rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e12 / pool.balance);
-    pool.lastRewardBlock = currentRewardBlock;
-  }
-
-  /*
-   * @notice Deposit token to stake by the user
-   * @notice Update the data of the pool
-   * @notice Send current rewards if exists to the sender
-   *
-   * @param _token  : token address to stake
-   * @param _amount : deposit amount
-   *
-   * @emits Deposit (_token, msg.sender, _amount);
-   */
-  function deposit (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
-    require(_amount > 0, 'Only not null amount');
-
-    Pool storage pool = pools[_token];
-    Account storage account = accounts[msg.sender][_token];
-
-    _updatePool(_token);
-
-    if ( account.balance > 0 ) {
-      account.rewardPending += (account.balance * pool.rewardPerShare) /  1e12  - account.rewardDebt;
+    /**
+     * @param balance   : Amount of token provided by this account
+     * @param rewardDebt: Reward debt amount
+     */
+    struct Account {
+        uint256 balance; // Amount of token provided by this account
+        uint256 rewardDebt; // Reward debt amount
+        uint256 rewardPending; // Reward pending amount
     }
 
-    _token.safeTransferFrom(address(msg.sender), address(this), _amount);
+    mapping(IERC20 => Pool) public pools;
 
-    account.balance = account.balance + _amount;
-    account.rewardDebt = account.balance * pool.rewardPerShare /  1e12;
-    pool.balance = pool.balance + _amount;
+    // @dev [msg.sender][token] = {balance, rewardDebt}
+    mapping(address => mapping(IERC20 => Account)) public accounts;
 
-    emit Deposit (_token, msg.sender, _amount);
-  }
+    event PoolCreated(IERC20 token, address oracle, string symbol);
+    event Deposit(IERC20 token, address account, uint256 amount);
+    event Withdraw(IERC20 token, address account, uint256 amount);
+    event Claim(address account, uint256 amount);
 
-  /*
-   * @notice Withdraw the token staken by the user
-   * @notice Update the data of the pool
-   * @notice Send current rewards pending
-   *
-   * @param _token  : token address to unstake
-   * @param _amount : deposit amount
-   *
-   * @emits Deposit (_token, msg.sender, _amount);
-   */
-  function withdraw (IERC20 _token, uint256 _amount) onlyCreatedToken (_token) external {
-    require(_amount > 0, "Amount 0");
-    require(accounts[msg.sender][_token].balance >= _amount, 'Insufficient balance');
-
-    Pool storage pool = pools[_token];
-    Account storage account = accounts[msg.sender][_token];
-
-    _updatePool(_token);
-
-    account.rewardPending += account.balance * pool.rewardPerShare / 1e12 - account.rewardDebt;
-    account.balance = account.balance  - _amount;
-    pool.balance -= _amount;
-    account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;
-
-    // withdraw amount and update internal balances
-    _token.safeTransfer(address(msg.sender), _amount);
-
-    emit Withdraw (_token, msg.sender, _amount);
-  }
-
-  /**
-   * @notice mint the token needed for send using the mint methods of the ERC20.
-   * @notice send the reward using the safeTransfer methode of SafeERC20.
-   *
-   * @param _to     : address to send the reward
-   * @param _amount : amount of reward to send
-   *
-   */
-  function safeRewardTransfer(address _to, uint256 _amount) internal {
-    rewardToken.mint(_amount);
-    rewardToken.safeTransfer(_to, _amount);
-  }
-
-  /*
-   * @dev function to see pending Tokens on frontend.
-   *
-   * @param _token  : token address of the pool to check the pending reward
-   * @param _user   : account address of the user to check the pending reward
-   *
-   * @return the pending reward
-   */
-  function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
-    Pool memory pool = pools[_token];
-    Account memory account = accounts[_user][_token];
-
-    // Calculate pending rewards for the pool
-    uint256 poolPendingRewards;
-    uint256 rewardPerShare;
-    if (pool.balance > 0) {
-      poolPendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-      rewardPerShare = pool.rewardPerShare + (poolPendingRewards  *  1e12 / pool.balance);
+    /**
+     * @notice Check if the token pool exists
+     *
+     * @param _token  : token address to check
+     */
+    modifier onlyCreatedToken(IERC20 _token) {
+        require(pools[_token].oracle != address(0), "Token not yet allowed");
+        _;
     }
 
-    return account.balance * rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
-  }
+    constructor(IStackedERC20 _rewardToken) {
+        rewardToken = _rewardToken;
+    }
 
-  function getDataFeed(IERC20 _token) external view returns (int, uint256) {
-    address atOracle = pools[_token].oracle;
-    require (atOracle != address(0), 'DataFeed not available');
+    /*
+     * @notice Creation of a pool to allow users to stake their token
+     * @dev The value of the token is peg with de Chainlink oracle
+     * @dev Only the owner can create a pool
+     *
+     * @param _token          : address of the token put in pool
+     * @param _oracle         : address of the Chainlink oracle for this token
+     * @param decimalOracle   : decimals of token oracle
+     * @param _rewardPerSecond: reward per second for this pool
+     * @param symbol          : symbol of the token
+     *
+     * @emits PoolCreated (_token, _oracle, symbol).
+     */
+    function createPool(
+        IERC20 _token,
+        address _oracle,
+        uint256 _decimalOracle,
+        uint256 _rewardPerSecond,
+        string calldata symbol
+    ) external onlyOwner {
+        require(pools[_token].oracle == address(0), "Token already attached");
+        require(_decimalOracle > 0, "Decimal must be bigger than 0");
 
-    AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
-    ( /*uint80 roundID*/, int price, /*uint startedAt*/, /*uint timeStamp*/, /*uint80
-    answeredInRound*/ ) = priceFeed.latestRoundData();
-    return (price, pools[_token].decimalOracle);
-  }
+        pools[_token].oracle = _oracle;
+        pools[_token].decimalOracle = _decimalOracle;
+        pools[_token].rewardPerSecond = _rewardPerSecond;
 
-  function claim (IStackedERC20 _token) external {
-    _claim(_token, msg.sender);
-  }
+        emit PoolCreated(_token, _oracle, symbol);
+    }
 
-  function claim(IStackedERC20 _token, address _to) external {
-    _claim(_token, _to);
-  }
+    /**
+     * @dev Update the data of the pool
+     *
+     * @param _token          : address of the token where the pool must be update
+     */
+    function _updatePool(IERC20 _token) internal {
+        Pool storage pool = pools[_token];
+        uint256 currentRewardBlock = block.timestamp;
 
-  function _claim(IStackedERC20 _token, address _to) internal {
-    _updatePool(_token);
+        if (pool.balance == 0) {
+            pool.lastRewardBlock = currentRewardBlock;
+            return;
+        }
 
-    Pool memory pool = pools[_token];
+        // Calculate pending rewards for the incentive token
+        uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) *
+            pool.rewardPerSecond;
+        pool.rewardPerShare =
+            pool.rewardPerShare +
+            ((pendingRewards * 1e12) / pool.balance);
+        pool.lastRewardBlock = currentRewardBlock;
+    }
 
-    Account storage account = accounts[msg.sender][_token];
-    uint256 pending = account.balance * pool.rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
+    /*
+     * @notice Deposit token to stake by the user
+     * @notice Update the data of the pool
+     *
+     * @param _token  : token address to stake
+     * @param _amount : deposit amount
+     *
+     * @emits Deposit (_token, msg.sender, _amount);
+     */
+    function deposit(IERC20 _token, uint256 _amount)
+        external
+        onlyCreatedToken(_token)
+    {
+        require(_amount > 0, "Only not null amount");
 
-    require(pending > 0, 'Insufficient rewards balance');
+        Pool storage pool = pools[_token];
+        Account storage account = accounts[msg.sender][_token];
 
-    account.rewardPending = 0;
-    account.rewardDebt = account.balance * pool.rewardPerShare / 1e12;
+        _updatePool(_token);
 
-    safeRewardTransfer(_to, pending);
-    emit Claim(_to, pending);
-  }
+        if (account.balance > 0) {
+            account.rewardPending +=
+                (account.balance * pool.rewardPerShare) /
+                1e12 -
+                account.rewardDebt;
+        }
+
+        _token.safeTransferFrom(address(msg.sender), address(this), _amount);
+
+        account.balance = account.balance + _amount;
+        account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+        pool.balance = pool.balance + _amount;
+
+        emit Deposit(_token, msg.sender, _amount);
+    }
+
+    /*
+     * @notice Withdraw the token staken by the user
+     * @notice Update the data of the pool
+     *
+     * @param _token  : token address to unstake
+     * @param _amount : deposit amount
+     *
+     * @emits Deposit (_token, msg.sender, _amount);
+     */
+    function withdraw(IERC20 _token, uint256 _amount)
+        external
+        onlyCreatedToken(_token)
+    {
+        require(_amount > 0, "Amount 0");
+        require(
+            accounts[msg.sender][_token].balance >= _amount,
+            "Insufficient balance"
+        );
+
+        Pool storage pool = pools[_token];
+        Account storage account = accounts[msg.sender][_token];
+
+        _updatePool(_token);
+
+        account.rewardPending +=
+            (account.balance * pool.rewardPerShare) /
+            1e12 -
+            account.rewardDebt;
+        account.balance = account.balance - _amount;
+        pool.balance -= _amount;
+        account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+
+        // withdraw amount and update internal balances
+        _token.safeTransfer(address(msg.sender), _amount);
+
+        emit Withdraw(_token, msg.sender, _amount);
+    }
+
+    /**
+     * @dev mint the token needed for send using the mint methods of the ERC20.
+     * @dev send the reward using the safeTransfer methode of SafeERC20.
+     *
+     * @param _to     : address to send the reward
+     * @param _amount : amount of reward to send
+     *
+     */
+    function safeRewardTransfer(address _to, uint256 _amount) internal {
+        rewardToken.mint(_amount);
+        rewardToken.safeTransfer(_to, _amount);
+    }
+
+    /*
+     * @notice function to see pending Tokens on frontend.
+     *
+     * @param _token  : token address of the pool to check the pending reward
+     * @param _user   : account address of the user to check the pending reward
+     *
+     * @return the pending reward
+     */
+    function claimable(IERC20 _token, address _user)
+        external
+        view
+        returns (uint256 rewards)
+    {
+        Pool memory pool = pools[_token];
+        Account memory account = accounts[_user][_token];
+
+        // Calculate pending rewards for the pool
+        uint256 poolPendingRewards;
+        uint256 rewardPerShare;
+        if (pool.balance > 0) {
+            poolPendingRewards =
+                (block.timestamp - pool.lastRewardBlock) *
+                pool.rewardPerSecond;
+            rewardPerShare =
+                pool.rewardPerShare +
+                ((poolPendingRewards * 1e12) / pool.balance);
+        }
+
+        return
+            (account.balance * rewardPerShare) /
+            1e12 -
+            account.rewardDebt +
+            account.rewardPending;
+    }
+
+    /*
+     * @notice retrieve eth price from Chainlink oracle
+     *
+     * @param _token  : token address of the pool to get the conversion for
+     *
+     * @return the eth / token conversion
+     */
+    function getDataFeed(IERC20 _token)
+        external
+        view
+        returns (int256, uint256)
+    {
+        address atOracle = pools[_token].oracle;
+        require(atOracle != address(0), "DataFeed not available");
+
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
+        (
+            ,
+            /*uint80 roundID*/
+            int256 price, /*uint startedAt*/ /*uint timeStamp*/ /*uint80
+    answeredInRound*/
+            ,
+            ,
+
+        ) = priceFeed.latestRoundData();
+        return (price, pools[_token].decimalOracle);
+    }
+
+    /*
+     * @notice claim rewards
+     *
+     * @param _token  : token address of the pool to get the reward for
+     *
+     * @emits Claim see _claim function
+     */
+    function claim(IStackedERC20 _token) external {
+        _claim(_token, msg.sender);
+    }
+
+    /*
+     * @notice claim rewards and send rewards to the address passed as parameter
+     *
+     * @param _token  : token address of the pool to get the reward for
+     *
+     * @emits Claim see _claim function
+     */
+    function claim(IStackedERC20 _token, address _to) external {
+        _claim(_token, _to);
+    }
+
+    /*
+     * @dev claim rewards
+     *
+     * @param _token  : token address of the pool to get the reward for
+     *
+     * @emits Claim
+     */
+    function _claim(IStackedERC20 _token, address _to) internal {
+        _updatePool(_token);
+
+        Pool memory pool = pools[_token];
+
+        Account storage account = accounts[msg.sender][_token];
+        uint256 pending = (account.balance * pool.rewardPerShare) /
+            1e12 -
+            account.rewardDebt +
+            account.rewardPending;
+
+        require(pending > 0, "Insufficient rewards balance");
+
+        account.rewardPending = 0;
+        account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+
+        safeRewardTransfer(_to, pending);
+        emit Claim(_to, pending);
+    }
 }
