@@ -125,6 +125,14 @@ function Pool({pool, ...props}) {
         return (value / ETH).toFixed(2) + ' ETH';
     }
 
+    let claimable = valueClaimable;
+    if (typeof valueClaimable === 'string') {
+        claimable = parseFloat(claimable);
+    }
+    if (claimable > 0) {
+        claimable = claimable.toFixed(2);
+    }
+
     return (
         <div className="Pool">
             <div className="PoolInfos" onClick={handleClick}>
@@ -152,7 +160,7 @@ function Pool({pool, ...props}) {
                     <div>
                         {rewardToken !== null &&
                             <>
-                                {valueClaimable} {rewardToken.symbol}
+                                {claimable} {rewardToken.symbol}
                                 <a className="MetamaskIcon" onClick={(e) => addToMetamask(e, rewardToken.address, rewardToken.symbol)} title={"Add " + rewardToken.symbol + " to metamask"}><MetamaskIcon width={18} /></a>
                             </>
                         }
@@ -174,7 +182,7 @@ function Pool({pool, ...props}) {
                         value={valueDeposit}
                         setValue={setValueDeposit}
                     />
-                    <Claim claimable={valueClaimable} pool={pool} />
+                    <Claim claimable={claimable} pool={pool} />
                     <Operation
                         availableAmount={depositedAmount}
                         availableTitle="Deposited"
