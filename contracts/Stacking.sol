@@ -41,15 +41,36 @@ contract Stacking is Ownable {
         uint256 rewardPending;
     }
 
-    // @notice mapping of pools available
+    /**
+    * @notice mapping of pools available
+    */
     mapping(IERC20 => Pool) public pools;
 
-    // @dev [msg.sender][token] = {balance, rewardDebt}
+    /**
+    * @notice user mapping of pools data mapping
+    *
+    * @dev [msg.sender][token] = {balance, rewardDebt, rewardPending}
+    */
     mapping(address => mapping(IERC20 => Account)) public accounts;
 
+    /**
+    * @notice Event triggered when a new pool is created
+    */
     event PoolCreated(IERC20 token, address oracle, string symbol);
+
+    /**
+    * @notice Event triggered when a user deposit a token in a pool
+    */
     event Deposit(IERC20 token, address account, uint256 amount);
+
+    /**
+    * @notice Event triggered when a user withdraw a token from a pool
+    */
     event Withdraw(IERC20 token, address account, uint256 amount);
+
+    /**
+    * @notice Event triggered when a user claim his rewards
+    */
     event Claim(address account, uint256 amount);
 
     /**
@@ -62,6 +83,9 @@ contract Stacking is Ownable {
         _;
     }
 
+    /**
+    * @dev Contructor, requires an address of the reward token
+    */
     constructor(IStackedERC20 _rewardToken) {
         rewardToken = _rewardToken;
     }
@@ -113,6 +137,7 @@ contract Stacking is Ownable {
         // Calculate pending rewards for the incentive token
         uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) *
             pool.rewardPerSecond;
+
         pool.rewardPerShare =
             pool.rewardPerShare +
             ((pendingRewards * 1e12) / pool.balance);
@@ -137,8 +162,10 @@ contract Stacking is Ownable {
         Pool storage pool = pools[_token];
         Account storage account = accounts[msg.sender][_token];
 
+        // Calculate current pool reward per share
         _updatePool(_token);
 
+        // Calculate pending reward since now
         if (account.balance > 0) {
             account.rewardPending +=
                 (account.balance * pool.rewardPerShare) /
@@ -177,8 +204,10 @@ contract Stacking is Ownable {
         Pool storage pool = pools[_token];
         Account storage account = accounts[msg.sender][_token];
 
+        // Calculate current pool reward per share
         _updatePool(_token);
 
+        // Update internal balances
         account.rewardPending +=
             (account.balance * pool.rewardPerShare) /
             1e12 -
@@ -187,7 +216,7 @@ contract Stacking is Ownable {
         pool.balance = pool.balance - _amount;
         account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
 
-        // withdraw amount and update internal balances
+        // withdraw amount
         _token.safeTransfer(address(msg.sender), _amount);
 
         emit Withdraw(_token, msg.sender, _amount);
@@ -259,13 +288,11 @@ contract Stacking is Ownable {
 
         AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
         (
-            ,
-            /*uint80 roundID*/
-            int256 aggregatorPrice, /*uint startedAt*/ /*uint timeStamp*/ /*uint80
-    answeredInRound*/
-            ,
-            ,
-
+            /*uint80 roundID*/,
+            int256 aggregatorPrice,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
         ) = priceFeed.latestRoundData();
         return (aggregatorPrice, pools[_token].decimalOracle);
     }
