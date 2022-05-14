@@ -10,8 +10,6 @@ contract Stacking is Ownable {
     using SafeERC20 for IERC20;
     using SafeERC20 for IStackedERC20;
 
-    //  AggregatorV3Interface internal priceFeed;
-
     // Token used for rewards
     IStackedERC20 private rewardToken;
 
