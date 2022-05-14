@@ -1,5 +1,6 @@
 const Stacking = artifacts.require("./Stacking.sol");
 const CCCToken = artifacts.require("./CCCToken.sol");
+const MockOracle = artifacts.require("./MockOracle.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Xtz = artifacts.require("./Xtz.sol");
 const { BN, time, expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
@@ -14,16 +15,18 @@ contract("Stacking Test Suite", accounts => {
     const user2 = accounts[2];
     const user3 = accounts[3];
     let daiToken, dai, xtzToken, xtz;
-    const daiAggregator = accounts[2];
-    const xtzAggregator = accounts[4];
+    let daiAggregator;
+    let mockOracle;
     let instance;
     let rewardToken;
     const rewardPerSecond = 10;
-    const oracleDecimals = 2;
+    const oracleDecimals = 12;
 
     async function buildNewInstance () {
         const i = await Stacking.new(rewardToken.address, {from: owner});
         await rewardToken.allowAdmin(i.address, {from: owner});
+        mockOracle = await MockOracle.new( '12', '1', 'Mock Oracle');
+        daiAggregator = mockOracle.address;
         return i;
     }
 
@@ -516,5 +519,17 @@ contract("Stacking Test Suite", accounts => {
             expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(7800));
             expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3000));
         });
-    })
+    });
+
+    describe('Public: getDataFeed', function () {
+
+        it('should return the correct oracle price', async function () {
+            instance = await buildNewInstance();
+            await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
+            await mockOracle.setData(web3.utils.toWei('2000'));
+            const result = await instance.getDataFeed(dai);
+            expect(result.price).to.be.bignumber.equal(web3.utils.toWei('2000'));
+            expect(result.decimals).to.be.bignumber.equal('12');
+        });
+    });
 });

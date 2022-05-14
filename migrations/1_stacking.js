@@ -10,6 +10,7 @@ const CCCToken = artifacts.require("./CCCToken.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Xtz = artifacts.require("./Xtz.sol");
 const Usdt = artifacts.require("./Usdt.sol");
+const MockOracle = artifacts.require("./MockOracle.sol");
 
 module.exports = async (deployer) => {
   await deployer.deploy(CCCToken, web3.utils.toWei('1000000'));
@@ -22,6 +23,8 @@ module.exports = async (deployer) => {
   const usdt = await Usdt.deployed();
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
+  await deployer.deploy(MockOracle, '12', '1', 'Mock Oracle');
+  const myMockOracle = await MockOracle.deployed();
 
   // Allow stacking contract to mint CCC Token
   await myERC20.allowAdmin(myStacking.address);
@@ -46,6 +49,7 @@ module.exports = async (deployer) => {
   }
 
   if (process.env.ENVIRONMENT !== 'production') {
+    await myMockOracle.setData(web3.utils.toWei('3600'));
     await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead','5', web3.utils.toWei('5'), 'XTZ');
     await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', '5', web3.utils.toWei('5'), 'DAI');
   }
