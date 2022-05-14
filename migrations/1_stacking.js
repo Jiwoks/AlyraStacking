@@ -49,4 +49,9 @@ module.exports = async (deployer) => {
     await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead', web3.utils.toWei('5'), 'XTZ');
     await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', web3.utils.toWei('5'), 'DAI');
   }
+
+  // kovan
+  // uncomment this line to deploy on kovan for add pools with oracle
+  //   await myStacking.createPool(xtz.address, '0xBc3f28Ccc21E9b5856E81E6372aFf57307E2E883', 12, web3.utils.toWei('5'), 'XTZ');
+  //   await myStacking.createPool(dai.address, '0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541', 12, web3.utils.toWei('5'), 'DAI');
 };

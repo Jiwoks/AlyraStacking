@@ -8,7 +8,8 @@ import {
     getDepositedBalance,
     getTVL,
     claimableRewards,
-    getRewardTokenInfo
+    getRewardTokenInfo,
+    getDataFeed
 } from "../../../../helpers/contract";
 import Operation from "./Operation/Operation";
 import web3js from "web3";
@@ -28,6 +29,7 @@ function Pool({pool, ...props}) {
     const [valueClaimable, setValueClaimable] = useState(0);
     const [tvl, setTVL] = useState(0);
     const [rewardToken, setRewardToken] = useState(null);
+    const [ETH, setETH] = useState(0);
 
     const { address: walletAddress } = walletStore(state => ({address: state.address}));
 
@@ -70,6 +72,7 @@ function Pool({pool, ...props}) {
 
     useEffect(() => {
         getTVL(pool.token).then(tvl => {setTVL(web3js.utils.fromWei(tvl))});
+        getDataFeed(pool['token']).then(dataFeed => setETH(dataFeed.toFixed(2)));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -84,8 +87,6 @@ function Pool({pool, ...props}) {
 
     useEffect(() => {
         if (!walletAddress) {
-            setWalletAmount('-');
-            setDepositedAmount('-');
             return;
         }
 
@@ -103,6 +104,7 @@ function Pool({pool, ...props}) {
 
         const interval = setInterval(() => {
             claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
+            getDataFeed(pool['token']).then(dataFeed => setETH(dataFeed.toFixed(2)));
         }, 4000);
         return () => {
             clearInterval(interval);
@@ -119,14 +121,17 @@ function Pool({pool, ...props}) {
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
                     <div>{walletAmount}</div>
+                    <div>({(walletAmount / ETH).toFixed(2)} ETH)</div>
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Stacked</div>
                     <div>{depositedAmount}</div>
+                    <div>({(depositedAmount / ETH).toFixed(2)} ETH)</div>
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
                     <div>{tvl}</div>
+                    <div>({(tvl / ETH).toFixed(2)} ETH)</div>
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Pending Rewards</div>

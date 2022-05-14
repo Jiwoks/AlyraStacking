@@ -18,12 +18,15 @@ contract Stacking is Ownable {
   /**
    * @param oracle          : Address used for pool oracle
    * @param balance         : Total value locked inside the pool
+   * @param decimalOracle   : decimals of token oracle
    * @param rewardPerShare  : Rewards to distribute per share
    * @param rewardPerSecond : Rewards to distribute per second
    * @param lastRewardBlock : Last block timestamp where rewards are evaluated
    */
+  // TODO decimalOracle to uint1?
   struct Pool {
     address oracle;
+    uint256 decimalOracle;
     uint256 balance;
     uint256 rewardPerShare;
     uint256 rewardPerSecond;
@@ -71,16 +74,25 @@ contract Stacking is Ownable {
    *
    * @param _token          : address of the token put in pool
    * @param _oracle         : address of the Chainlink oracle for this token
+   * @param decimalOracle   : decimals of token oracle
    * @param _rewardPerSecond: reward per second for this pool
    * @param symbol          : symbol of the token
    *
    * @emits PoolCreated (_token, _oracle, symbol).
    */
-  // TODO remove symbol and use _token.symbol()
-  // TODO BONUS function for create a pool with anything token and peg then to default oracle
-  function createPool (IERC20 _token, address _oracle, uint256 _rewardPerSecond, string calldata symbol) onlyOwner external {
+  function createPool (
+    IERC20 _token,
+    address _oracle,
+    uint256 _decimalOracle,
+    uint256 _rewardPerSecond,
+    string calldata symbol
+    ) onlyOwner external {
+
     require (pools[_token].oracle == address(0), 'Token already attached');
+    require (_decimalOracle > 0, 'Decimal must be bigger than 0');
+
     pools[_token].oracle = _oracle;
+    pools[_token].decimalOracle = _decimalOracle;
     pools[_token].rewardPerSecond = _rewardPerSecond;
 
     emit PoolCreated (_token, _oracle, symbol);
@@ -175,7 +187,6 @@ contract Stacking is Ownable {
    * @param _amount : amount of reward to send
    *
    */
-  // TODO emit the claim event here instead withdraw and deposit function
   function safeRewardTransfer(address _to, uint256 _amount) internal {
     rewardToken.mint(_amount);
     rewardToken.safeTransfer(_to, _amount);
@@ -201,12 +212,14 @@ contract Stacking is Ownable {
     return account.balance * (pool.rewardPerShare + (pendingRewards * 1e12 / pool.balance)) /  1e12 - account.rewardDebt + account.rewardPending;
   }
 
-  function getDataFeed(IERC20 _token) external view returns (int) {
-    require (pools[_token].oracle != address(0), 'DataFeed not available');
-    AggregatorV3Interface priceFeed = AggregatorV3Interface(0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541);
+  function getDataFeed(IERC20 _token) external view returns (int, uint256) {
+    address atOracle = pools[_token].oracle;
+    require (atOracle != address(0), 'DataFeed not available');
+
+    AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
     ( /*uint80 roundID*/, int price, /*uint startedAt*/, /*uint timeStamp*/, /*uint80
     answeredInRound*/ ) = priceFeed.latestRoundData();
-    return price;
+    return (price, pools[_token].decimalOracle);
   }
 
   function claim (IStackedERC20 _token) external {
