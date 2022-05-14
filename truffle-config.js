@@ -16,7 +16,6 @@ const provider_set = (RPC) => {
     }
 }
 
-
 module.exports = {
     // See <http://truffleframework.com/docs/advanced/configuration>
     // to customize your Truffle configuration!
@@ -47,7 +46,8 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "0.8.13",    // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.13",
         }
     },
+    plugins: ["solidity-coverage"],
 };

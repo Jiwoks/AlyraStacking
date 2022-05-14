@@ -9,7 +9,7 @@ import {
     getTVL,
     claimableRewards,
     getRewardTokenInfo,
-    getDataFeed
+    getDataFeed,
 } from "../../../../helpers/contract";
 import Operation from "./Operation/Operation";
 import web3js from "web3";
@@ -29,7 +29,7 @@ function Pool({pool, ...props}) {
     const [valueClaimable, setValueClaimable] = useState(0);
     const [tvl, setTVL] = useState(0);
     const [rewardToken, setRewardToken] = useState(null);
-    const [ETH, setETH] = useState(0);
+    const [dataFeed, setDataFeed] = useState(null);
 
     const { address: walletAddress } = walletStore(state => ({address: state.address}));
 
@@ -72,7 +72,7 @@ function Pool({pool, ...props}) {
 
     useEffect(() => {
         getTVL(pool.token).then(tvl => {setTVL(web3js.utils.fromWei(tvl))});
-        getDataFeed(pool['token']).then(dataFeed => setETH(dataFeed.toFixed(2)));
+        getDataFeed(pool['token']).then(dataFeed => setDataFeed(dataFeed));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -104,7 +104,7 @@ function Pool({pool, ...props}) {
 
         const interval = setInterval(() => {
             claimableRewards(walletAddress, pool.token).then(rewards => setValueClaimable(web3js.utils.fromWei(rewards)));
-            getDataFeed(pool['token']).then(dataFeed => setETH(dataFeed.toFixed(2)));
+            getDataFeed(pool['token']).then(dataFeed => setDataFeed(dataFeed));
         }, 4000);
         return () => {
             clearInterval(interval);
@@ -118,11 +118,17 @@ function Pool({pool, ...props}) {
      * @return {string|boolean}
      */
     const calcETH = (value) => {
-        if (!ETH) {
+        if (!dataFeed) {
             return false;
         }
 
-        return (value / ETH).toFixed(2) + ' ETH';
+        if (!parseFloat(value)) {
+            return false;
+        }
+
+        const convertedValue = new web3js.utils.BN(dataFeed.price).mul(new web3js.utils.BN(value)).div(new web3js.utils.BN(Math.pow(10, parseInt(dataFeed.decimals))))
+
+        return '$' + parseFloat(convertedValue).toFixed(2);
     }
 
     let claimable = valueClaimable;

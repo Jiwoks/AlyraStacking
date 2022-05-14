@@ -8,23 +8,27 @@ require('dotenv').config({
 const Stacking = artifacts.require("./Stacking.sol");
 const CCCToken = artifacts.require("./CCCToken.sol");
 const Dai = artifacts.require("./Dai.sol");
-const Xtz = artifacts.require("./Xtz.sol");
+const Link = artifacts.require("./Link.sol");
 const Usdt = artifacts.require("./Usdt.sol");
-const MockOracle = artifacts.require("./MockOracle.sol");
+const MockOracleDAI = artifacts.require("./MockOracle.sol");
+const MockOracleLINK = artifacts.require("./MockOracle.sol");
 
-module.exports = async (deployer) => {
+module.exports = async (deployer, network, account) => {
+
   await deployer.deploy(CCCToken, web3.utils.toWei('1000000'));
   const myERC20 = await CCCToken.deployed();
   await deployer.deploy(Dai, web3.utils.toWei('1000000'));
   const dai = await Dai.deployed();
-  await deployer.deploy(Xtz, web3.utils.toWei('1000000'));
-  const xtz = await Xtz.deployed();
+  await deployer.deploy(Link, web3.utils.toWei('1000000'));
+  const link = await Link.deployed();
   await deployer.deploy(Usdt, web3.utils.toWei('1000000'));
   const usdt = await Usdt.deployed();
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
-  await deployer.deploy(MockOracle, '12', '1', 'Mock Oracle');
-  const myMockOracle = await MockOracle.deployed();
+  await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
+  const myMockOracleDAI = await MockOracleDAI.deployed();
+  await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
+  const myMockOracleLINK = await MockOracleLINK.deployed();
 
   // Allow stacking contract to mint CCC Token
   await myERC20.allowAdmin(myStacking.address);
@@ -48,14 +52,14 @@ module.exports = async (deployer) => {
     }
   }
 
-  if (process.env.ENVIRONMENT !== 'production') {
-    await myMockOracle.setData(web3.utils.toWei('3600'));
-    await myStacking.createPool(xtz.address, '0x000000000000000000000000000000000000dead','5', web3.utils.toWei('5'), 'XTZ');
-    await myStacking.createPool(dai.address, '0x000000000000000000000000000000000000dead', '5', web3.utils.toWei('5'), 'DAI');
+  if (network === 'development') {
+    await myMockOracleDAI.setData('100376540');
+    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI');
+    await myMockOracleLINK.setData('707782127');
+    await myStacking.createPool(link.address, myMockOracleLINK.address, '8', web3.utils.toWei('5'), 'LINK');
+  } else if (network === 'kovan' || network === 'kovan') {
+    await myStacking.createPool(dai.address, '0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541', 12, web3.utils.toWei('5'), 'DAI');
+    await myStacking.createPool(link.address, '0x3Af8C569ab77af5230596Acf0E8c2F9351d24C38', 12, web3.utils.toWei('5'), 'LINK');
   }
 
-  // kovan
-  // uncomment this line to deploy on kovan for add pools with oracle
-  //   await myStacking.createPool(xtz.address, '0xBc3f28Ccc21E9b5856E81E6372aFf57307E2E883', 12, web3.utils.toWei('5'), 'XTZ');
-  //   await myStacking.createPool(dai.address, '0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541', 12, web3.utils.toWei('5'), 'DAI');
 };

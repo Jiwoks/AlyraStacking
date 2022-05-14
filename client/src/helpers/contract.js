@@ -148,13 +148,7 @@ async function getRewardTokenInfo() {
 }
 
 async function getDataFeed(token) {
-    const dataFeedReturn = await contractInstance.methods.getDataFeed(token).call();
-    const price = dataFeedReturn[0];
-    const decimals = dataFeedReturn[1];
-
-    const dataFeed = (price / Math.pow(decimals, 10));
-
-    return (dataFeed);
+    return await contractInstance.methods.getDataFeed(token).call();
 }
 
 export {
@@ -170,5 +164,5 @@ export {
     isOwner,
     createPool,
     claim,
-    getDataFeed
+    getDataFeed,
 };

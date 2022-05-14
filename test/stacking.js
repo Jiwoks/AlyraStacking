@@ -2,7 +2,7 @@ const Stacking = artifacts.require("./Stacking.sol");
 const CCCToken = artifacts.require("./CCCToken.sol");
 const MockOracle = artifacts.require("./MockOracle.sol");
 const Dai = artifacts.require("./Dai.sol");
-const Xtz = artifacts.require("./Xtz.sol");
+const Link = artifacts.require("./Link.sol");
 const { BN, time, expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 const {duration} = require("@openzeppelin/test-helpers/src/time");
@@ -14,7 +14,7 @@ contract("Stacking Test Suite", accounts => {
     const user1 = accounts[1];
     const user2 = accounts[2];
     const user3 = accounts[3];
-    let daiToken, dai, xtzToken, xtz;
+    let daiToken, dai, linkToken, link;
     let daiAggregator;
     let mockOracle;
     let instance;
@@ -53,15 +53,15 @@ contract("Stacking Test Suite", accounts => {
     before(async () => {
         rewardToken = await CCCToken.new(new BN(1000000000000), {from: owner});
         daiToken = await Dai.deployed();
-        xtzToken = await Xtz.deployed();
+        linkToken = await Link.deployed();
         dai = daiToken.address;
-        xtz = xtzToken.address;
+        link = linkToken.address;
         await daiToken.transfer(user1, 1000000);
         await daiToken.transfer(user2, 1000000);
         await daiToken.transfer(user3, 1000000);
-        await xtzToken.transfer(user1, 1000000);
-        await xtzToken.transfer(user2, 1000000);
-        await xtzToken.transfer(user3, 1000000);
+        await linkToken.transfer(user1, 1000000);
+        await linkToken.transfer(user2, 1000000);
+        await linkToken.transfer(user3, 1000000);
     });
 
     // it('only for duration tests', async () => {
@@ -180,7 +180,7 @@ contract("Stacking Test Suite", accounts => {
             await expectRevert( instance.withdraw(dai, 0, {from: user1}), 'Amount 0' );
         });
         it('should reject for token not yet attached', async function () {
-            await expectRevert( instance.withdraw(xtz, 100, {from: user1}), 'Token not yet allowed' );
+            await expectRevert( instance.withdraw(link, 100, {from: user1}), 'Token not yet allowed' );
         });
         it('should reject for amount upper than user sold', async function () {
             await expectRevert( instance.withdraw(dai, 1001, {from: user1}), 'Insufficient balance' );
