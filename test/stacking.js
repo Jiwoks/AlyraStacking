@@ -376,22 +376,19 @@ contract("Stacking Test Suite", accounts => {
             await daiToken.approve(instance.address, 1000, {from: user2});
         });
 
-        describe('should transfer rewards for 1 hour with 1 account inside the pool', () => {
+        it('should transfer rewards for 1 hour with 1 account inside the pool', async () => {
 
-            before(async () => {
-                const previousBalance = new BN(await rewardToken.balanceOf(user1));
-                await instance.deposit(dai, 1000, {from: user1});
-                await time.increase(time.duration.hours(1));
-            })
+            const previousBalance = new BN(await rewardToken.balanceOf(user1));
+            await instance.deposit(dai, 1000, {from: user1});
+            await time.increase(time.duration.hours(1));
 
-            it('should claimable', async function () {
-
-                // expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(evalRewards(3600)));
-                await instance.withdraw(dai, 1000, {from: user1});
-                const newBalance = new BN(await rewardToken.balanceOf(user1));
-                expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
-                expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(evalRewards(3600));
-            });
+            // expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(evalRewards(3600)));
+            await instance.withdraw(dai, 1000, {from: user1});
+            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(3600));
+            await instance.claim(dai, {from: user1});
+            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            const newBalance = new BN(await rewardToken.balanceOf(user1));
+            expect(newBalance.sub(previousBalance)).to.be.bignumber.equal(evalRewards(3600));
         });
 
 
@@ -405,9 +402,11 @@ contract("Stacking Test Suite", accounts => {
             expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600, .5));
             await instance.withdraw(dai, 1000, {from: user1});
             await instance.withdraw(dai, 1000, {from: user2});
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(0));
-            expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(0));
+            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(3600, .5));
+            expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600, .5));
+            await instance.claim(dai, {from: user1});
             const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            await instance.claim(dai, {from: user2});
             const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
             expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(3600, .5));
             expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3600, .5));
@@ -429,13 +428,15 @@ contract("Stacking Test Suite", accounts => {
             expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
             expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600 / 2));
             await instance.withdraw(dai, 1000, {from: user1});
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
             expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600 / 2));
             await time.increase(time.duration.hours(1));
             expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600/2 + 3600));
             await instance.withdraw(dai, 1000, {from: user2});
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(new BN(0));
+            expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600/2 + 3600));
+            await instance.claim(dai, {from: user1});
             const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
+            await instance.claim(dai, {from: user2});
             const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
             expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
             expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3600 + 3600 / 2));
@@ -497,8 +498,8 @@ contract("Stacking Test Suite", accounts => {
             // user2 pendingReward 3600 / 3 + 3600 / 2
             // user2 balance 500
 
-            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(3600 / 2));
-            expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3600 / 3 + 3600 / 2));
+            expect(await instance.claimable(dai, user1)).to.be.bignumber.equal(evalRewards(7800)); // 3600 + 3600 * 2 / 3 + 3600 / 2
+            expect(await instance.claimable(dai, user2)).to.be.bignumber.equal(evalRewards(3000)); // 3600 / 3 + 3600 / 2
 
             await instance.withdraw(dai, 500, {from: user2});
             // user1 pendingReward 3600 / 2
@@ -506,23 +507,14 @@ contract("Stacking Test Suite", accounts => {
             // user2 pendingReward 0
             // user2 balance 0
 
+            await instance.claim(dai, {from: user1});
+            await instance.claim(dai, {from: user2});
+
             const newBalanceUser1 = new BN(await rewardToken.balanceOf(user1));
             const newBalanceUser2 = new BN(await rewardToken.balanceOf(user2));
 
-            expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(
-                evalRewards(
-                        3600                                        // h0->h1: user1 = 100%                user2 = 0
-                        + 3600) * 2 / 3                                      // h1->h2: user1 = 2/3                 user2 = 1/3
-                        + (0)                                                // h2->h3: user1 = 1/2 (not claimed)   user2 = 1/2    => rewards are not claimed
-            );
-            expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(
-                evalRewards(
-                        0                                 // h0->h1: user1 = 100%                user2 = 0
-                        + 3600 * 1 / 3                             // h1->h2: user1 = 2/3                 user2 = 1/3
-                        + 3600  / 2                                // h2->h3: user1 = 1/2 (not claimed)   user2 = 1/2
-                        + (0 )                                     // h3->h4: user1 = 1/2                 user2 = 1/2 (not claimed)
-                )
-            );
+            expect(newBalanceUser1.sub(previousBalanceUser1)).to.be.bignumber.equal(evalRewards(7800));
+            expect(newBalanceUser2.sub(previousBalanceUser2)).to.be.bignumber.equal(evalRewards(3000));
         });
     })
 });
