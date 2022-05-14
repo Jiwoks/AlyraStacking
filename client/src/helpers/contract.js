@@ -100,7 +100,7 @@ async function withdraw(walletAddress, tokenAddress, amount) {
 }
 
 async function claim(walletAddress, tokenAddress) {
-    return contractInstance.methods.claim(tokenAddress, walletAddress).send({from: walletAddress});
+    return contractInstance.methods.claim(tokenAddress).send({from: walletAddress});
 }
 
 async function createPool(walletAddress, tokenAddress, oracleAddress, rewardsPerSecond, symbol, decimalsOracle) {

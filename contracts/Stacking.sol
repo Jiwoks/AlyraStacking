@@ -282,17 +282,6 @@ contract Stacking is Ownable {
     }
 
     /*
-     * @notice claim rewards and send rewards to the address passed as parameter
-     *
-     * @param _token  : token address of the pool to get the reward for
-     *
-     * @emits Claim see _claim function
-     */
-    function claim(IStackedERC20 _token, address _to) external {
-        _claim(_token, _to);
-    }
-
-    /*
      * @dev claim rewards
      *
      * @param _token  : token address of the pool to get the reward for
