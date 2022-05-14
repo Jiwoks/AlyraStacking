@@ -204,13 +204,13 @@ contract Stacking is Ownable {
     Pool memory pool = pools[_token];
     Account memory account = accounts[_user][_token];
 
-    if (pool.balance == 0) {
-      return 0;
-    }
-
     // Calculate pending rewards for the pool
-    uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
-    uint256 rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e12 / pool.balance);
+    uint256 poolPendingRewards;
+    uint256 rewardPerShare;
+    if (pool.balance > 0) {
+      poolPendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
+      rewardPerShare = pool.rewardPerShare + (poolPendingRewards  *  1e12 / pool.balance);
+    }
 
     return account.balance * rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
   }
