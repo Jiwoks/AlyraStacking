@@ -26,16 +26,14 @@ module.exports = async (deployer, network, account) => {
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
 
+  // Allow stacking contract to mint CCC Token
+  await myERC20.allowAdmin(myStacking.address);
+
   if (network === 'development') {
     await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
     const myMockOracleDAI = await MockOracleDAI.deployed();
     await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
     const myMockOracleLINK = await MockOracleLINK.deployed();
-  }
-  // Allow stacking contract to mint CCC Token
-  await myERC20.allowAdmin(myStacking.address);
-
-  if (network === 'development') {
     await myMockOracleDAI.setData('100376540');
     await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI');
     await myMockOracleLINK.setData('707782127');
