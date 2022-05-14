@@ -19,6 +19,7 @@ contract("Stacking Test Suite", accounts => {
     let instance;
     let rewardToken;
     const rewardPerSecond = 10;
+    const oracleDecimals = 2;
 
     async function buildNewInstance () {
         const i = await Stacking.new(rewardToken.address, {from: owner});
@@ -105,11 +106,11 @@ contract("Stacking Test Suite", accounts => {
         });
 
         it('should reject for not owner caller', async function () {
-            await expectRevert( instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: user1}), 'Ownable: caller is not the owner' );
+            await expectRevert( instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: user1}), 'Ownable: caller is not the owner' );
         });
         it('should reject for token already added', async function () {
-            result = await instance.createPool(dai, daiAggregator, rewardPerSecond, {from: owner});
-            await expectRevert( instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner}), 'Token already attached' );
+            result = await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, {from: owner});
+            await expectRevert( instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner}), 'Token already attached' );
         });
         it('should emit PoolCreated event', async function () {
             expectEvent( result, 'PoolCreated', {token: dai, oracle: daiAggregator} );
@@ -130,7 +131,7 @@ contract("Stacking Test Suite", accounts => {
             await expectRevert( instance.deposit(dai, 100, {from: user1}), 'Token not yet allowed' );
         });
         it('should reject for null amount', async function () {
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
             await expectRevert( instance.deposit(dai, 0, {from: user1}), 'Only not null amount' );
         });
         it('should accept uint parameter and previously allowed token addresses only', async function () {
@@ -161,7 +162,7 @@ contract("Stacking Test Suite", accounts => {
         before(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
             await instance.deposit(dai, 1000, {from: user1});
         });
@@ -222,7 +223,7 @@ contract("Stacking Test Suite", accounts => {
         beforeEach(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
             await daiToken.approve(instance.address, 1000, {from: user2});
 
@@ -370,7 +371,7 @@ contract("Stacking Test Suite", accounts => {
         beforeEach(async () => {
             instance = await buildNewInstance();
             await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
+            await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
             await daiToken.approve(instance.address, 1000, {from: user2});
         });
