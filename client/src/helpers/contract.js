@@ -103,8 +103,8 @@ async function claim(walletAddress, tokenAddress) {
     return contractInstance.methods.claim(tokenAddress, walletAddress).send({from: walletAddress});
 }
 
-async function createPool(walletAddress, tokenAddress, oracleAddress, rewardsPerSecond, symbol) {
-    return contractInstance.methods.createPool(tokenAddress, oracleAddress, rewardsPerSecond, symbol).send({from: walletAddress});
+async function createPool(walletAddress, tokenAddress, oracleAddress, rewardsPerSecond, symbol, decimalsOracle) {
+    return contractInstance.methods.createPool(tokenAddress, oracleAddress, decimalsOracle, rewardsPerSecond, symbol).send({from: walletAddress});
 }
 
 async function isOwner(walletAddress) {
@@ -147,6 +147,16 @@ async function getRewardTokenInfo() {
     }
 }
 
+async function getDataFeed(token) {
+    const dataFeedReturn = await contractInstance.methods.getDataFeed(token).call();
+    const price = dataFeedReturn[0];
+    const decimals = dataFeedReturn[1];
+
+    const dataFeed = (price / Math.pow(decimals, 10));
+
+    return (dataFeed);
+}
+
 export {
     loadContract,
     getPools,
@@ -159,5 +169,6 @@ export {
     getRewardTokenInfo,
     isOwner,
     createPool,
-    claim
+    claim,
+    getDataFeed
 };
