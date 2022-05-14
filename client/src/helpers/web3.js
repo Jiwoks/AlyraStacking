@@ -13,12 +13,13 @@ const web3 = () =>
           await window.ethereum.enable();
           // Accounts now exposed
 
-          const kovanChainId = '0x539';
+          const localChainId = '0x539';
+          const kovanChainId = '0x2A';
 
           const chainId = await window.ethereum.request({ method: 'eth_chainId' });
 
 
-          if (chainId !== kovanChainId) {
+          if (chainId !== kovanChainId && chainId !== localChainId) {
             try {
               await window.ethereum.request({
                 method: 'wallet_switchEthereumChain',
