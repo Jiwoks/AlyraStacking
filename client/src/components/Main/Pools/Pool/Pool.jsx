@@ -111,6 +111,20 @@ function Pool({pool, ...props}) {
         }
     }, [depositedAmount, walletAddress]);
 
+    /**
+     * Generate ETH conversion display depending on passed value
+     *
+     * @param value
+     * @return {string|boolean}
+     */
+    const calcETH = (value) => {
+        if (!ETH) {
+            return false;
+        }
+
+        return (value / ETH).toFixed(2) + ' ETH';
+    }
+
     return (
         <div className="Pool">
             <div className="PoolInfos" onClick={handleClick}>
@@ -121,17 +135,17 @@ function Pool({pool, ...props}) {
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
                     <div>{walletAmount}</div>
-                    <div>({(walletAmount / ETH).toFixed(2)} ETH)</div>
+                    {calcETH(walletAmount) !== false && <div>({calcETH(walletAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Stacked</div>
                     <div>{depositedAmount}</div>
-                    <div>({(depositedAmount / ETH).toFixed(2)} ETH)</div>
+                    {calcETH(depositedAmount) !== false && <div>({calcETH(depositedAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
                     <div>{tvl}</div>
-                    <div>({(tvl / ETH).toFixed(2)} ETH)</div>
+                    {calcETH(tvl) !== false && <div>({calcETH(tvl)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Pending Rewards</div>
