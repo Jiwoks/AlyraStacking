@@ -108,63 +108,6 @@ contract("Stacking Test Suite", accounts => {
 
     });
 
-    describe('Public: Test address balance', function () {
-
-        before(async () => {
-            instance = await buildNewInstance();
-            await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
-            await daiToken.approve(instance.address, 1000, {from: user3});
-            await instance.deposit(dai, 1000, {from: user3});
-        });
-
-        it('should reject for token not yet attached', async function () {
-            await expectRevert( instance.balanceOf(xtz, {from: user1}), 'Token not yet allowed' );
-        });
-        it('should return 0 for token not yet deposited', async function () {
-            const balance = await instance.balanceOf(dai, {from: user1});
-            expect(new BN(balance)).to.be.bignumber.equal(new BN(0));
-        });
-        it('should return 0 for new account', async function () {
-            const balance = await instance.balanceOf(dai, {from: user2});
-            expect(new BN(balance)).to.be.bignumber.equal(new BN(0));
-        });
-        it('should return account balance', async function () {
-            const balance = await instance.balanceOf(dai, {from: user3});
-            expect(new BN(balance)).to.be.bignumber.equal(new BN(1000));
-        });
-
-    });
-
-    describe('Public: Test for tvl by token', function () {
-
-        before(async () => {
-            instance = await buildNewInstance();
-            await rewardToken.transfer(instance.address, new BN(1000000000));
-            await instance.createPool(dai, daiAggregator, rewardPerSecond, 'DAI', {from: owner});
-            await daiToken.approve(instance.address, 100000, {from: user1});
-            await daiToken.approve(instance.address, 100000, {from: user2});
-            await instance.deposit(dai, 1000, {from: user1});
-        });
-
-        it('should return 0 tvl for new token attached', async function () {
-            const tvl = await instance.tvlOf(xtz);
-            expect(new BN(tvl)).to.be.bignumber.equal(new BN(0));
-        });
-        it('should return real tvl for token with tokens with deposits', async function () {
-            const tvl = await instance.tvlOf(dai);
-            expect(new BN(tvl)).to.be.bignumber.equal(new BN(1000));
-        });
-        it('should return real tvl for token with multiple deposits', async function () {
-            await instance.deposit(dai, 500, {from: user1});
-            const tvl1 = await instance.tvlOf(dai, {from: owner});
-            await instance.deposit(dai, 2000, {from: user2});
-            const tvl2 = await instance.tvlOf(dai, {from: owner});
-            expect(new BN(tvl1)).to.be.bignumber.equal(new BN(1500));
-            expect(new BN(tvl2)).to.be.bignumber.equal(new BN(3500));
-        });
-    });
-
     describe('Public: Test to withdraw tokens', function () {
 
         before(async () => {
@@ -185,15 +128,26 @@ contract("Stacking Test Suite", accounts => {
             await expectRevert( instance.withdraw(dai, 1001, {from: user1}), 'Insufficient balance' );
         });
         it('should decrease account balance', async function () {
-            const balanceBefore = new BN(await instance.balanceOf(dai, {from: user1}));
+
+            const user1AccDaiBefore = await instance.accounts(user1, daiToken.address);
+            const user1AccDaiBalanceBefore = new BN(user1AccDaiBefore['balance']);
+
             await instance.withdraw(dai, 100, {from: user1});
-            const balanceAfter = new BN(await instance.balanceOf(dai, {from: user1}));
-            expect(balanceBefore.sub(balanceAfter)).to.be.bignumber.equal(new BN(100));
+
+            const user1AccDaiAfter = await instance.accounts(user1, daiToken.address);
+            const user1AccDaiBalanceAfter = new BN(user1AccDaiAfter['balance']);
+
+            expect(user1AccDaiBalanceBefore.sub(user1AccDaiBalanceAfter)).to.be.bignumber.equal(new BN(100));
         });
         it('should decrease tvl', async function () {
-            const tvlBefore = new BN(await instance.tvlOf(dai));
+            const daiPoolBefore = await instance.pools(daiToken.address);
+            const tvlBefore = new BN (daiPoolBefore['balance']);
+
             await instance.withdraw(dai, 100, {from: user1});
-            const tvlAfter = new BN(await instance.tvlOf(dai));
+
+            const daiPoolAfter = await instance.pools(daiToken.address);
+            const tvlAfter = new BN (daiPoolAfter['balance']);
+
             expect(tvlBefore.sub(tvlAfter)).to.be.bignumber.equal(new BN(100));
         });
         it('should withdraw amount from sc to account', async function () {

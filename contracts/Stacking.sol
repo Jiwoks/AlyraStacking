@@ -35,7 +35,7 @@ contract Stacking is Ownable {
    * @param rewardDebt: Reward debt amount
    */
   struct Account {
-    uint256 balance;         // Amount of token provided by this account
+    uint256 balance;        // Amount of token provided by this account
     uint256 rewardDebt;      // Reward debt amount
     uint256 rewardPending;   // Reward pending amount
   }
@@ -165,31 +165,6 @@ contract Stacking is Ownable {
     _token.safeTransfer(address(msg.sender), _amount);
 
     emit Withdraw (_token, msg.sender, _amount);
-  }
-
-  /**
-   * @notice
-   *
-   * @param _token  : address of the token to know the balance
-   *
-   * @return the total amount of the tokens staked in the pool by the sender
-   */
-  // TODO named the returns variable
-  function balanceOf (IERC20 _token) onlyCreatedToken(_token) external view returns (uint256) {
-    return accounts[msg.sender][_token].balance;
-  }
-
-
-  /**
-   * @notice
-   *
-   * @param _token  : address of the token to know the balance
-   *
-   * @return the total amount of the tokens staked in the pool
-   */
-  // TODO named the returns variable
-  function tvlOf (IERC20 _token) external view returns (uint256) {
-    return pools[_token].balance;
   }
 
   /**
