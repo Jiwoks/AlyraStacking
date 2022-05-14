@@ -10,23 +10,20 @@ contract Stacking is Ownable {
     using SafeERC20 for IERC20;
     using SafeERC20 for IStackedERC20;
 
-    //  AggregatorV3Interface internal priceFeed;
-
     // Token used for rewards
     IStackedERC20 private rewardToken;
 
     /**
      * @param oracle          : Address used for pool oracle
-     * @param balance         : Total value locked inside the pool
      * @param decimalOracle   : decimals of token oracle
+     * @param balance         : Total value locked inside the pool
      * @param rewardPerShare  : Rewards to distribute per share
      * @param rewardPerSecond : Rewards to distribute per second
      * @param lastRewardBlock : Last block timestamp where rewards are evaluated
      */
-    // TODO decimalOracle to uint1?
     struct Pool {
         address oracle;
-        uint256 decimalOracle;
+        uint8 decimalOracle;
         uint256 balance;
         uint256 rewardPerShare;
         uint256 rewardPerSecond;
@@ -34,15 +31,17 @@ contract Stacking is Ownable {
     }
 
     /**
-     * @param balance   : Amount of token provided by this account
-     * @param rewardDebt: Reward debt amount
+     * @param balance       : Amount of token provided by this account
+     * @param rewardDebt    : Reward debt amount
+     * @param rewardPending : Reward pending amount
      */
     struct Account {
-        uint256 balance; // Amount of token provided by this account
-        uint256 rewardDebt; // Reward debt amount
-        uint256 rewardPending; // Reward pending amount
+        uint256 balance;
+        uint256 rewardDebt;
+        uint256 rewardPending;
     }
 
+    // @notice mapping of pools available
     mapping(IERC20 => Pool) public pools;
 
     // @dev [msg.sender][token] = {balance, rewardDebt}
@@ -74,7 +73,7 @@ contract Stacking is Ownable {
      *
      * @param _token          : address of the token put in pool
      * @param _oracle         : address of the Chainlink oracle for this token
-     * @param decimalOracle   : decimals of token oracle
+     * @param _decimalOracle  : decimals of token oracle
      * @param _rewardPerSecond: reward per second for this pool
      * @param symbol          : symbol of the token
      *
@@ -83,7 +82,7 @@ contract Stacking is Ownable {
     function createPool(
         IERC20 _token,
         address _oracle,
-        uint256 _decimalOracle,
+        uint8 _decimalOracle,
         uint256 _rewardPerSecond,
         string calldata symbol
     ) external onlyOwner {
@@ -157,7 +156,7 @@ contract Stacking is Ownable {
     }
 
     /*
-     * @notice Withdraw the token staken by the user
+     * @notice Withdraw the token staked by the user
      * @notice Update the data of the pool
      *
      * @param _token  : token address to unstake
@@ -185,7 +184,7 @@ contract Stacking is Ownable {
             1e12 -
             account.rewardDebt;
         account.balance = account.balance - _amount;
-        pool.balance -= _amount;
+        pool.balance = pool.balance - _amount;
         account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
 
         // withdraw amount and update internal balances
@@ -247,12 +246,13 @@ contract Stacking is Ownable {
      *
      * @param _token  : token address of the pool to get the conversion for
      *
-     * @return the eth / token conversion
+     * @return price    : price of the oracle
+     * @return decimal  : decimal of the price oracle
      */
     function getDataFeed(IERC20 _token)
         external
         view
-        returns (int256, uint256)
+        returns (int256 price, uint256 decimals)
     {
         address atOracle = pools[_token].oracle;
         require(atOracle != address(0), "DataFeed not available");
