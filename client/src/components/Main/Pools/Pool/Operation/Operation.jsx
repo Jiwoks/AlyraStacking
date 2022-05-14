@@ -33,8 +33,6 @@ function Operation({availableTitle, availableAmount, availableTokenName, handleC
         }
     }
 
-    console.log(walletAddress)
-
     return (
         <div className="Operation">
             <h2>{props.title}</h2>
