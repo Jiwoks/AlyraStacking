@@ -216,6 +216,7 @@ contract Stacking is Ownable {
    */
   function claimable(IERC20 _token, address _user) external view returns (uint256 rewards) {
     Pool memory pool = pools[_token];
+    Account memory account = accounts[_user][_token];
 
     if (pool.balance == 0) {
       return 0;
@@ -225,10 +226,7 @@ contract Stacking is Ownable {
     uint256 pendingRewards = (block.timestamp - pool.lastRewardBlock) * pool.rewardPerSecond;
     uint256 rewardPerShare = pool.rewardPerShare + (pendingRewards  *  1e12 / pool.balance);
 
-    Account memory account = accounts[_user][_token];
-    uint256 pending = account.balance * rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
-
-    return pending;
+    return account.balance * rewardPerShare / 1e12 - account.rewardDebt + account.rewardPending;
   }
 
   function getDataFeed(IERC20 _token) external view returns (int) {
