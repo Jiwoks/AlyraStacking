@@ -1,8 +1,8 @@
-const CCCToken = artifacts.require("./CCCToken.sol");
+const CCTToken = artifacts.require("./CCTToken.sol");
 const { BN, time, expectRevert, expectEvent } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
 
-contract("CCCToken Test Suite", accounts => {
+contract("CCTToken Test Suite", accounts => {
 
     const owner = accounts[0];
     const user1 = accounts[1];
@@ -11,12 +11,12 @@ contract("CCCToken Test Suite", accounts => {
     let instance;
     const tokenConfig = {
         name: 'Caribou Crew Coin',
-        symbol: 'CCC',
+        symbol: 'CCT',
         decimal: 18
     }
 
     async function buildNewInstance () {
-        instance = await CCCToken.new(new BN(10), {from: owner});
+        instance = await CCTToken.new(new BN(10), {from: owner});
     }
 
     describe('Test for creation', function () {

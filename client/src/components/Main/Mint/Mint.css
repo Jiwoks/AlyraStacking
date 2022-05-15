@@ -1,13 +1,18 @@
-.NewPool {
+.Mint {
     padding: 40px;
     min-width: 400px;
 }
 
-.NewPoolTitle {
+.MintTitle {
     text-align: center;
     color: #024346;
 }
 
-.NewPoolButton, .MintSelect {
+.MintButton {
+    margin-top: 20px !important;
     width: 100%;
+}
+
+.MintError {
+    margin-bottom: 20px;
 }

@@ -1,5 +1,5 @@
 const Stacking = artifacts.require("./Stacking.sol");
-const CCCToken = artifacts.require("./CCCToken.sol");
+const CCTToken = artifacts.require("./CCTToken.sol");
 const MockOracle = artifacts.require("./MockOracle.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Link = artifacts.require("./Link.sol");
@@ -51,7 +51,7 @@ contract("Stacking Test Suite", accounts => {
     }
 
     before(async () => {
-        rewardToken = await CCCToken.new(new BN(1000000000000), {from: owner});
+        rewardToken = await CCTToken.new(new BN(1000000000000), {from: owner});
         daiToken = await Dai.deployed();
         linkToken = await Link.deployed();
         dai = daiToken.address;

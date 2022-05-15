@@ -1,6 +1,6 @@
 .Main {
     background: url("../../assets/images/background.svg");
-    height: 100vh;
+    height: 100%;
     background-size: cover;
     position: relative;
 }
@@ -20,4 +20,15 @@
     position: absolute !important;
     bottom: 20px;
     right: 20px;
+}
+
+.MainMint {
+    position: absolute !important;
+    bottom: 90px;
+    right: 20px;
+}
+
+:root {
+    --toastify-color-progress-success: #63af79 !important;
+    --toastify-icon-color-success: #63af79 !important;;
 }

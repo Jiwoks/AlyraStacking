@@ -5,13 +5,13 @@ require('dotenv').config({
   path: path.resolve(__dirname, '../.env')
 });
 
-const CCCToken = artifacts.require("./CCCToken.sol");
+const CCTToken = artifacts.require("./CCTToken.sol");
 const Dai = artifacts.require("./Dai.sol");
 const Link = artifacts.require("./Link.sol");
 const Usdt = artifacts.require("./Usdt.sol");
 
 module.exports = async (deployer, network, accounts) => {
-  const myERC20 = await CCCToken.deployed();
+  const myERC20 = await CCTToken.deployed();
   const dai = await Dai.deployed();
   const link = await Link.deployed();
   const usdt = await Usdt.deployed();

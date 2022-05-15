@@ -14,11 +14,11 @@ interface IStackedERC20 is IERC20 {
     function revokeAdmin (address admin) external;
 }
 
-contract CCCToken is IStackedERC20, ERC20, Ownable {
+contract CCTToken is IStackedERC20, ERC20, Ownable {
 
     mapping (address => bool) admins;
 
-    constructor(uint256 initialSupply) ERC20("Caribou Crew Coin", "CCC") {
+    constructor(uint256 initialSupply) ERC20("Caribou Crew Coin", "CCT") {
         _mint(msg.sender, initialSupply);
     }
 
