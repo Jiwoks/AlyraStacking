@@ -3,9 +3,12 @@
 }
 body {
   margin: 0;
+  height: 100vh;
   font-family: "Roboto", serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: url("assets/images/background.svg");
+  background-size: cover;
 }
 
 code {
