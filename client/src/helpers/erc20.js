@@ -16,7 +16,6 @@ async function subscribeToTransfer(address, callback) {
     return contractInstance.events.Transfer({
         filter: { to: walletStore.getState().address },
     }).on('data', event => {
-        console.log(event)
         subscriptions[address](event);
     });
 }
