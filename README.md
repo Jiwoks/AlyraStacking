@@ -57,5 +57,5 @@ Create a DApp that allows stacking !
 
 ## Team:
 Damien Barrere [github](https://github.com/Jiwoks)
-Michael Petit [github](https://github.com/michael-petit-jnesis)
+Michael Petit [github](https://github.com/mickpetit)
 Teddy Blanco [github](https://github.com/tonTed)

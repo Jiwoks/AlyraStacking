@@ -90,7 +90,7 @@ contract Stacking is Ownable {
         rewardToken = _rewardToken;
     }
 
-    /*
+    /**
      * @notice Creation of a pool to allow users to stake their token
      * @dev The value of the token is peg with de Chainlink oracle
      * @dev Only the owner can create a pool
@@ -120,7 +120,7 @@ contract Stacking is Ownable {
         emit PoolCreated(_token, _oracle, symbol);
     }
 
-    /*
+    /**
      * @notice Deposit token to stake by the user
      * @notice Update the data of the pool
      *
@@ -158,7 +158,7 @@ contract Stacking is Ownable {
         emit Deposit(_token, msg.sender, _amount);
     }
 
-    /*
+    /**
      * @notice Withdraw the token staked by the user
      * @notice Update the data of the pool
      *
@@ -198,7 +198,7 @@ contract Stacking is Ownable {
         emit Withdraw(_token, msg.sender, _amount);
     }
 
-    /*
+    /**
      * @notice claim rewards
      *
      * @param _token  : token address of the pool to get the reward for
@@ -209,7 +209,7 @@ contract Stacking is Ownable {
         _claim(_token, msg.sender);
     }
 
-    /*
+    /**
      * @notice function to see pending Tokens on frontend.
      *
      * @param _token  : token address of the pool to check the pending reward
@@ -245,7 +245,7 @@ contract Stacking is Ownable {
             account.rewardPending;
     }
 
-    /*
+    /**
      * @notice retrieve eth price from Chainlink oracle
      *
      * @param _token  : token address of the pool to get the conversion for
@@ -309,7 +309,7 @@ contract Stacking is Ownable {
         pool.lastRewardBlock = currentRewardBlock;
     }
 
-    /*
+    /**
      * @dev claim rewards
      *
      * @param _token  : token address of the pool to get the reward for
