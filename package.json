@@ -31,5 +31,8 @@
     "deploy-ropsten": "truffle deploy --network ropsten",
     "migrate": "truffle migrate --reset --skip-dry-run",
     "docgen": "solidity-docgen --solc-module solc-0.8"
+  },
+  "dependencies": {
+    "@openzeppelin/truffle-upgrades": "^1.15.0"
   }
 }
