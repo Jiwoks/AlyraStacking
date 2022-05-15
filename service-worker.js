@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/AlyraStacking/precache-manifest.3fa2c034f5242fc2b4a056dd549f383f.js"
+  "/AlyraStacking/precache-manifest.216f734d853442a82710e22b057d0817.js"
 );
 
 self.addEventListener('message', (event) => {
