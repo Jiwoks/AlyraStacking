@@ -39,8 +39,8 @@ module.exports = async (deployer, network, account) => {
     await myMockOracleLINK.setData('707782127');
     await myStacking.createPool(link.address, myMockOracleLINK.address, '8', web3.utils.toWei('5'), 'LINK');
   } else if (network === 'kovan' || network === 'kovan') {
-    await myStacking.createPool(dai.address, '0x22B58f1EbEDfCA50feF632bD73368b2FdA96D541', 8, web3.utils.toWei('5'), 'DAI');
-    await myStacking.createPool(link.address, '0x3Af8C569ab77af5230596Acf0E8c2F9351d24C38', 8, web3.utils.toWei('5'), 'LINK');
+    await myStacking.createPool(dai.address, '0x777A68032a88E5A84678A77Af2CD65A7b3c0775a', '8', web3.utils.toWei('5'), 'DAI');
+    await myStacking.createPool(link.address, '0x396c5E36DD0a0F5a5D33dae44368D4193f69a1F0', '8', web3.utils.toWei('5'), 'LINK');
   }
 
 };
