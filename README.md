@@ -60,6 +60,15 @@ Contract address on kovan: ****
 - [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
 - [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
 
+## **Links to relevant documents**:
+- [Smart Contract Token](https://github.com/Jiwoks/AlyraStacking/blob/main/contracts/CCTToken.sol)
+- [Smart Contract Stacking](https://github.com/Jiwoks/AlyraStacking/blob/main/contracts/Stacking.sol)
+- [Smart Contract Faucet](https://github.com/Jiwoks/AlyraStacking/blob/main/contracts/Faucet.sol)
+- [Smart Contract MockOraccle](https://github.com/Jiwoks/AlyraStacking/blob/main/contracts/MockOracle.sol)
+- [Test token](https://github.com/Jiwoks/AlyraStacking/blob/main/test/ccc_token.js)
+- [Test stacking](https://github.com/Jiwoks/AlyraStacking/blob/main/test/stacking.js)
+- [Test faucet](https://github.com/Jiwoks/AlyraStacking/blob/main/test/faucet.js)
+
 ## **Various explanations**
 
 ### Using chainlink:
@@ -95,6 +104,74 @@ function getDataFeed(IERC20 _token)
 **This arguments is obligatory***
 
 ### Rewards calculation:
+We were inspired by different calculation methods used in the DeFi protocols ([PacakeSwap](https://github.com/pancakeswap/pancake-farm/blob/a61313bf107c7f82e1a0f5736d815041fbf8cdff/contracts/SousChef.sol), [TraderJoe](https://github.com/traderjoe-xyz/joe-core/blob/ec25d93533427328c576c38e7987485ba0ffd27d/contracts/rewarders/SimpleRewarderPerSec.sol)) <br>
+We opted for the method of calculation per second.
+
+The principle is based on tree key elements:<br>
+- `rewardPerShare` (state variable in structure `Pool`), allows to divide the pool into parts<br>
+- `rewardDebt` (state variable in structure `Account`), determines the debt that the account has at the time of its interaction with the contract (this allows to calculate its share, compared to the time in the pool).
+- `rewardPending` (state variable in structure `Account`), rewards pending of the account.
+
+1. At each modification of the balance of the pool (methods `deposit()` and `withdraw()`), `rewardPerShare` is reassessed in the methods `_udaptePool()`:
+    ```solidity
+    function _updatePool(IERC20 _token) internal {
+    ...
+        pool.rewardPerShare =
+            pool.rewardPerShare +
+            ((pendingRewards * 1e12) / pool.balance);
+        pool.lastRewardBlock = currentRewardBlock;
+    }
+    ```
+2. Then the `rewardPending` of the account will be updated in methods `deposit()` and `withdraw()`, because `rewardDebt` will be modified later taking into account the new share.
+    ```solidity
+   function deposit(IERC20 _token, uint256 _amount)
+   function withdraw(IERC20 _token, uint256 _amount)
+        external
+        onlyCreatedToken(_token)
+    {
+    ...
+        account.rewardPending +=
+            (account.balance * pool.rewardPerShare) /
+            1e12 -
+            account.rewardDebt;
+    ...
+    }
+    ```
+3. Finally the `rewardDebt` is calculated with the new `rewardPerShare` in methods `deposit()` and `withdraw()`, with a difference between the two:
+   1. `deposit()` is calculated before the `pool.balance` is updated:
+       ```solidity
+      function deposit(IERC20 _token, uint256 _amount)
+           external
+           onlyCreatedToken(_token)
+       {
+       ...
+           account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+           pool.balance = pool.balance - _amount;
+       ...
+       }
+       ```
+   2. `withdraw()` is calculated after the `pool.balance` is updated:
+       ```solidity
+      function deposit(IERC20 _token, uint256 _amount)
+           external
+           onlyCreatedToken(_token)
+       {
+       ...
+           pool.balance = pool.balance + _amount;
+           account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+       ...
+       }
+       ```
+
+*Info: when the rewards are claimed, `account.reward` is set to `0` and `account.rewardDebt` is recalculated:*
+```solidity
+function _claim(IStackedERC20 _token, address _to) internal {
+...
+    account.rewardPending = 0;
+    account.rewardDebt = (account.balance * pool.rewardPerShare) / 1e12;
+...
+}
+```
 
 ## Tests result
 
