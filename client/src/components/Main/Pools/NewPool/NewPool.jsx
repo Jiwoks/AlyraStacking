@@ -7,6 +7,7 @@ import walletStore from "../../../../stores/wallet";
 import contractStore from '../../../../stores/contract';
 import {createPool, getPools} from "../../../../helpers/contract";
 import {toast} from 'react-toastify';
+import {getOracleDecimals} from "../../../../helpers/oracle";
 
 function NewPool({closePopup}) {
     const [contract, setContract] = useState('');
@@ -32,6 +33,16 @@ function NewPool({closePopup}) {
             setSubmitEnabled(false);
         }
     }, [contract, oracle, rewards, symbol, decimalsOracle]);
+
+    useEffect(() => {
+        if(
+            !web3js.utils.isAddress(oracle)
+        )
+        {
+            return;
+        }
+        getOracleDecimals(oracle).then((decimals) => setDecimalsOracle(decimals));
+    });
 
     const handleInputChange = (input, e) => {
         if (input === 'contract') {
