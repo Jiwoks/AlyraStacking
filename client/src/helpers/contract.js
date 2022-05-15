@@ -1,6 +1,6 @@
 import stackingContract from '../contracts/Stacking.json';
 import ierc20Contract from '../contracts/IERC20.json';
-import CCCTokenContract from '../contracts/CCCToken.json';
+import CCTTokenContract from '../contracts/CCTToken.json';
 import contractStore from '../stores/contract';
 import web3 from "./web3";
 import web3js from 'web3';
@@ -117,9 +117,9 @@ async function isOwner(walletAddress) {
 }
 
 /**
- * CCC Token contract instance
+ * CCT Token contract instance
  */
-let CCCTokenContractInstance;
+let CCTTokenContractInstance;
 
 /**
  * Retrieve Token information from token SC
@@ -128,21 +128,21 @@ let CCCTokenContractInstance;
 async function getRewardTokenInfo() {
     const web3Provider = await web3;
     const networkId = await web3Provider.eth.net.getId();
-    const deployedNetwork = CCCTokenContract.networks[networkId];
+    const deployedNetwork = CCTTokenContract.networks[networkId];
 
     if (!deployedNetwork || !deployedNetwork.address) {
         return null;
     }
 
-    CCCTokenContractInstance = new web3Provider.eth.Contract(
-        CCCTokenContract.abi,
+    CCTTokenContractInstance = new web3Provider.eth.Contract(
+        CCTTokenContract.abi,
         deployedNetwork && deployedNetwork.address,
     );
 
     return {
-        symbol: await CCCTokenContractInstance.methods.symbol().call(),
-        decimals: await CCCTokenContractInstance.methods.decimals().call(),
-        name: await CCCTokenContractInstance.methods.name().call(),
+        symbol: await CCTTokenContractInstance.methods.symbol().call(),
+        decimals: await CCTTokenContractInstance.methods.decimals().call(),
+        name: await CCTTokenContractInstance.methods.name().call(),
         address: deployedNetwork.address
     }
 }

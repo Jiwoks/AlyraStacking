@@ -18,7 +18,7 @@ function Mint({closePopup}) {
             await mint(token, true);
             setError('');
         } catch (e) {
-            const json = /({.*})$/s.exec(e.message);
+            const json = /(\{.*\})$/s.exec(e.message);
 
             try {
                 setError(JSON.parse(json[1]).message.slice(49));

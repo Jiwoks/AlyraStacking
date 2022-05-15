@@ -22,7 +22,7 @@ function Claim({pool, claimable, ...props}) {
 
     let title = 'Claim';
     if (claimable) {
-        title += ' ' + claimable + ' CCC';
+        title += ' ' + claimable + ' CCT';
     }
 
     return (
