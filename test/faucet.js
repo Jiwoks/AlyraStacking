@@ -30,9 +30,9 @@ contract("Faucet Test Suite", accounts => {
             expect(await instance.balanceOf(user1)).to.be.bignumber.equal('0');
             await instance.faucet({from: user1});
             expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('1'));
-            expectRevert(instance.faucet({from: user1}), 'Can only mint 1 ether per hour');
+            expectRevert(instance.faucet({from: user1}), 'Can only mint one time per hour');
             await time.increase(3500);
-            expectRevert(instance.faucet({from: user1}), 'Can only mint 1 ether per hour');
+            expectRevert(instance.faucet({from: user1}), 'Can only mint one time per hour');
             await instance.faucet({from: user2}); // Required to create a new block
             await time.increase(1000);
             await instance.faucet({from: user1});
