@@ -205,7 +205,7 @@ contract Stacking is Ownable {
      *
      * @emits Claim see _claim function
      */
-    function claim(IStackedERC20 _token) external {
+    function claim(IStackedERC20 _token) onlyCreatedToken(_token) external {
         _claim(_token, msg.sender);
     }
 
@@ -218,6 +218,7 @@ contract Stacking is Ownable {
      * @return the pending reward
      */
     function claimable(IERC20 _token, address _user)
+    onlyCreatedToken(_token)
     external
     view
     returns (uint256 rewards)

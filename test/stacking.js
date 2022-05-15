@@ -239,6 +239,9 @@ contract("Stacking Test Suite", accounts => {
             const previousBalance = new BN(await rewardToken.balanceOf(user1));
         });
 
+        it('should reject for token not yet attached', async function () {
+            await expectRevert(instance.claimable(link, user1), 'Token not yet allowed' );
+        });
 
         describe('tvl: user1 (0%)', () => {
             it('should return null for user with null balance', async () => {
@@ -382,6 +385,10 @@ contract("Stacking Test Suite", accounts => {
             await instance.createPool(dai, daiAggregator, oracleDecimals, rewardPerSecond, 'DAI', {from: owner});
             await daiToken.approve(instance.address, 1000, {from: user1});
             await daiToken.approve(instance.address, 1000, {from: user2});
+        });
+
+        it('should reject for token not yet attached', async function () {
+            await expectRevert( instance.claim(link, {from: user1}), 'Token not yet allowed' );
         });
 
         it('should revert if there is no nothing to claim', async () => {
