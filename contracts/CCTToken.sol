@@ -49,7 +49,7 @@ contract CCTToken is IStackedERC20, ERC20, Ownable {
      *
      * @param _admin         : admin address to mark as allowed
      *
-     * @emits AdminAllowed (_admin).
+     * @dev emits AdminAllowed (_admin).
      */
     function allowAdmin (address _admin) external onlyOwner {
         admins[_admin] = true;
@@ -60,7 +60,7 @@ contract CCTToken is IStackedERC20, ERC20, Ownable {
      * @notice Mark the admin address as revoked
      * @dev Only the owner can revoke admins
      *
-     * @emits revokeAdmin (_admin).
+     * @dev emits revokeAdmin (_admin).
      */
     function revokeAdmin (address _admin) external onlyOwner {
         require(_admin != owner(), 'Not allowed to self revoke');
