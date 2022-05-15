@@ -19,6 +19,7 @@ import {ReactComponent as MetamaskIcon} from "../../../../assets/images/metamask
 import {ReactComponent as ArrowUp} from "../../../../assets/images/arrow_up.svg"
 import {ReactComponent as ArrowDown} from "../../../../assets/images/arrow_down.svg"
 import Claim from "./Claim/Claim";
+import {subscribeToTransfer, unsubscribeToTransfer} from "../../../../helpers/erc20";
 
 function Pool({pool, ...props}) {
     const [opened, setOpened] = useState(false);
@@ -94,6 +95,13 @@ function Pool({pool, ...props}) {
         }
 
         updatePool();
+        subscribeToTransfer(pool.token, () => {
+            getWalletBalance(walletAddress, pool.token).then(balance => setWalletAmount(web3js.utils.fromWei(balance)));
+        });
+
+        return () => {
+            unsubscribeToTransfer(pool.token);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [walletAddress]);
 
