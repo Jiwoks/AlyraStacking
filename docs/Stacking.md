@@ -17,19 +17,11 @@ Check if the token pool exists
 
 
 
+Contructor, requires an address of the reward token
+
+### `createPool(contract IERC20 _token, address _oracle, uint8 _decimalOracle, uint256 _rewardPerSecond, string symbol)` (external)
 
 
-### `createPool(contract IERC20 _token, address _oracle, uint256 _decimalOracle, uint256 _rewardPerSecond, string symbol)` (external)
-
-
-
-
-
-### `_updatePool(contract IERC20 _token)` (internal)
-
-
-
-Update the data of the pool
 
 
 
@@ -45,12 +37,9 @@ Update the data of the pool
 
 
 
-### `safeRewardTransfer(address _to, uint256 _amount)` (internal)
+### `claim(contract IStackedERC20 _token)` (external)
 
 
-
-mint the token needed for send using the mint methods of the ERC20.
-send the reward using the safeTransfer methode of SafeERC20.
 
 
 
@@ -60,21 +49,26 @@ send the reward using the safeTransfer methode of SafeERC20.
 
 
 
-### `getDataFeed(contract IERC20 _token) → int256, uint256` (external)
+### `getDataFeed(contract IERC20 _token) → int256 price, uint256 decimals` (external)
 
 
 
 
 
-### `claim(contract IStackedERC20 _token)` (external)
+### `safeRewardTransfer(address _to, uint256 _amount)` (internal)
 
 
 
+mint the token needed for send using the mint methods of the ERC20.
+send the reward using the safeTransfer methode of SafeERC20.
 
 
-### `claim(contract IStackedERC20 _token, address _to)` (external)
+
+### `_updatePool(contract IERC20 _token)` (internal)
 
 
+
+Update the data of the pool
 
 
 
@@ -87,25 +81,25 @@ send the reward using the safeTransfer methode of SafeERC20.
 
 ### `PoolCreated(contract IERC20 token, address oracle, string symbol)`
 
-
+Event triggered when a new pool is created
 
 
 
 ### `Deposit(contract IERC20 token, address account, uint256 amount)`
 
-
+Event triggered when a user deposit a token in a pool
 
 
 
 ### `Withdraw(contract IERC20 token, address account, uint256 amount)`
 
-
+Event triggered when a user withdraw a token from a pool
 
 
 
 ### `Claim(address account, uint256 amount)`
 
-
+Event triggered when a user claim his rewards
 
 
 
@@ -116,7 +110,7 @@ send the reward using the safeTransfer methode of SafeERC20.
 address oracle
 
 
-uint256 decimalOracle
+uint8 decimalOracle
 
 
 uint256 balance

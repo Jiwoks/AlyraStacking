@@ -90,7 +90,7 @@ contract Stacking is Ownable {
         rewardToken = _rewardToken;
     }
 
-    /*
+    /**
      * @notice Creation of a pool to allow users to stake their token
      * @dev The value of the token is peg with de Chainlink oracle
      * @dev Only the owner can create a pool
@@ -101,7 +101,7 @@ contract Stacking is Ownable {
      * @param _rewardPerSecond: reward per second for this pool
      * @param symbol          : symbol of the token
      *
-     * @emits PoolCreated (_token, _oracle, symbol).
+     * @dev emits PoolCreated (_token, _oracle, symbol).
      */
     function createPool(
         IERC20 _token,
@@ -120,14 +120,14 @@ contract Stacking is Ownable {
         emit PoolCreated(_token, _oracle, symbol);
     }
 
-    /*
+    /**
      * @notice Deposit token to stake by the user
      * @notice Update the data of the pool
      *
      * @param _token  : token address to stake
      * @param _amount : deposit amount
      *
-     * @emits Deposit (_token, msg.sender, _amount);
+     * @dev emits Deposit (_token, msg.sender, _amount);
      */
     function deposit(IERC20 _token, uint256 _amount)
         external
@@ -158,14 +158,14 @@ contract Stacking is Ownable {
         emit Deposit(_token, msg.sender, _amount);
     }
 
-    /*
+    /**
      * @notice Withdraw the token staked by the user
      * @notice Update the data of the pool
      *
      * @param _token  : token address to unstake
      * @param _amount : deposit amount
      *
-     * @emits Deposit (_token, msg.sender, _amount);
+     * @dev emits Deposit (_token, msg.sender, _amount);
      */
     function withdraw(IERC20 _token, uint256 _amount)
         external
@@ -198,24 +198,24 @@ contract Stacking is Ownable {
         emit Withdraw(_token, msg.sender, _amount);
     }
 
-    /*
+    /**
      * @notice claim rewards
      *
      * @param _token  : token address of the pool to get the reward for
      *
-     * @emits Claim see _claim function
+     * @dev emits Claim see _claim function
      */
     function claim(IStackedERC20 _token) external onlyCreatedToken(_token) {
         _claim(_token, msg.sender);
     }
 
-    /*
+    /**
      * @notice function to see pending Tokens on frontend.
      *
      * @param _token  : token address of the pool to check the pending reward
      * @param _user   : account address of the user to check the pending reward
      *
-     * @return the pending reward
+     * @return rewards  : the pending reward
      */
     function claimable(IERC20 _token, address _user)
         external
@@ -245,13 +245,13 @@ contract Stacking is Ownable {
             account.rewardPending;
     }
 
-    /*
+    /**
      * @notice retrieve eth price from Chainlink oracle
      *
      * @param _token  : token address of the pool to get the conversion for
      *
      * @return price    : price of the oracle
-     * @return decimal  : decimal of the price oracle
+     * @return decimals : decimal of the price oracle
      */
     function getDataFeed(IERC20 _token)
         external
@@ -309,12 +309,12 @@ contract Stacking is Ownable {
         pool.lastRewardBlock = currentRewardBlock;
     }
 
-    /*
+    /**
      * @dev claim rewards
      *
      * @param _token  : token address of the pool to get the reward for
      *
-     * @emits Claim
+     * @dev emits Claim
      */
     function _claim(IStackedERC20 _token, address _to) internal {
         _updatePool(_token);

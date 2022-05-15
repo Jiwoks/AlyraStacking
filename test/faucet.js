@@ -23,20 +23,20 @@ contract("Faucet Test Suite", accounts => {
         it('should mint', async () => {
             expect(await instance.balanceOf(user1)).to.be.bignumber.equal('0');
             await instance.faucet({from: user1});
-            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('1'));
+            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('100'));
         });
 
         it('should not allow to mint before 1 hour', async () => {
             expect(await instance.balanceOf(user1)).to.be.bignumber.equal('0');
             await instance.faucet({from: user1});
-            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('1'));
+            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('100'));
             expectRevert(instance.faucet({from: user1}), 'Can only mint one time per hour');
             await time.increase(3500);
             expectRevert(instance.faucet({from: user1}), 'Can only mint one time per hour');
             await instance.faucet({from: user2}); // Required to create a new block
             await time.increase(1000);
             await instance.faucet({from: user1});
-            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('2'));
+            expect(await instance.balanceOf(user1)).to.be.bignumber.equal(web3.utils.toWei('200'));
         });
     });
 });
