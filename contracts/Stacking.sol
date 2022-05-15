@@ -10,9 +10,6 @@ contract Stacking is Ownable {
     using SafeERC20 for IERC20;
     using SafeERC20 for IStackedERC20;
 
-    // Token used for rewards
-    IStackedERC20 private rewardToken;
-
     /**
      * @param oracle          : Address used for pool oracle
      * @param decimalOracle   : decimals of token oracle
@@ -40,6 +37,9 @@ contract Stacking is Ownable {
         uint256 rewardDebt;
         uint256 rewardPending;
     }
+
+    // Token used for rewards
+    IStackedERC20 private rewardToken;
 
     /**
     * @notice mapping of pools available
@@ -120,30 +120,6 @@ contract Stacking is Ownable {
         emit PoolCreated(_token, _oracle, symbol);
     }
 
-    /**
-     * @dev Update the data of the pool
-     *
-     * @param _token          : address of the token where the pool must be update
-     */
-    function _updatePool(IERC20 _token) internal {
-        Pool storage pool = pools[_token];
-        uint256 currentRewardBlock = block.timestamp;
-
-        if (pool.balance == 0) {
-            pool.lastRewardBlock = currentRewardBlock;
-            return;
-        }
-
-        // Calculate pending rewards for the incentive token
-        uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) *
-            pool.rewardPerSecond;
-
-        pool.rewardPerShare =
-            pool.rewardPerShare +
-            ((pendingRewards * 1e12) / pool.balance);
-        pool.lastRewardBlock = currentRewardBlock;
-    }
-
     /*
      * @notice Deposit token to stake by the user
      * @notice Update the data of the pool
@@ -222,6 +198,80 @@ contract Stacking is Ownable {
         emit Withdraw(_token, msg.sender, _amount);
     }
 
+    /*
+     * @notice claim rewards
+     *
+     * @param _token  : token address of the pool to get the reward for
+     *
+     * @emits Claim see _claim function
+     */
+    function claim(IStackedERC20 _token) external {
+        _claim(_token, msg.sender);
+    }
+
+    /*
+     * @notice function to see pending Tokens on frontend.
+     *
+     * @param _token  : token address of the pool to check the pending reward
+     * @param _user   : account address of the user to check the pending reward
+     *
+     * @return the pending reward
+     */
+    function claimable(IERC20 _token, address _user)
+    external
+    view
+    returns (uint256 rewards)
+    {
+        Pool memory pool = pools[_token];
+        Account memory account = accounts[_user][_token];
+
+        // Calculate pending rewards for the pool
+        uint256 poolPendingRewards;
+        uint256 rewardPerShare;
+        if (pool.balance > 0) {
+            poolPendingRewards =
+            (block.timestamp - pool.lastRewardBlock) *
+            pool.rewardPerSecond;
+            rewardPerShare =
+            pool.rewardPerShare +
+            ((poolPendingRewards * 1e12) / pool.balance);
+        }
+
+        return
+        (account.balance * rewardPerShare) /
+        1e12 -
+        account.rewardDebt +
+        account.rewardPending;
+    }
+
+    /*
+     * @notice retrieve eth price from Chainlink oracle
+     *
+     * @param _token  : token address of the pool to get the conversion for
+     *
+     * @return price    : price of the oracle
+     * @return decimal  : decimal of the price oracle
+     */
+    function getDataFeed(IERC20 _token)
+    external
+    view
+    returns (int256 price, uint256 decimals)
+    {
+        address atOracle = pools[_token].oracle;
+        require(atOracle != address(0), "DataFeed not available");
+
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
+        (
+        /*uint80 roundID*/,
+        int256 aggregatorPrice,
+        /*uint startedAt*/,
+        /*uint timeStamp*/,
+        /*uint80 answeredInRound*/
+        ) = priceFeed.latestRoundData();
+        return (aggregatorPrice, pools[_token].decimalOracle);
+    }
+
+
     /**
      * @dev mint the token needed for send using the mint methods of the ERC20.
      * @dev send the reward using the safeTransfer methode of SafeERC20.
@@ -235,77 +285,28 @@ contract Stacking is Ownable {
         rewardToken.safeTransfer(_to, _amount);
     }
 
-    /*
-     * @notice function to see pending Tokens on frontend.
+    /**
+     * @dev Update the data of the pool
      *
-     * @param _token  : token address of the pool to check the pending reward
-     * @param _user   : account address of the user to check the pending reward
-     *
-     * @return the pending reward
+     * @param _token          : address of the token where the pool must be update
      */
-    function claimable(IERC20 _token, address _user)
-        external
-        view
-        returns (uint256 rewards)
-    {
-        Pool memory pool = pools[_token];
-        Account memory account = accounts[_user][_token];
+    function _updatePool(IERC20 _token) internal {
+        Pool storage pool = pools[_token];
+        uint256 currentRewardBlock = block.timestamp;
 
-        // Calculate pending rewards for the pool
-        uint256 poolPendingRewards;
-        uint256 rewardPerShare;
-        if (pool.balance > 0) {
-            poolPendingRewards =
-                (block.timestamp - pool.lastRewardBlock) *
-                pool.rewardPerSecond;
-            rewardPerShare =
-                pool.rewardPerShare +
-                ((poolPendingRewards * 1e12) / pool.balance);
+        if (pool.balance == 0) {
+            pool.lastRewardBlock = currentRewardBlock;
+            return;
         }
 
-        return
-            (account.balance * rewardPerShare) /
-            1e12 -
-            account.rewardDebt +
-            account.rewardPending;
-    }
+        // Calculate pending rewards for the incentive token
+        uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) *
+        pool.rewardPerSecond;
 
-    /*
-     * @notice retrieve eth price from Chainlink oracle
-     *
-     * @param _token  : token address of the pool to get the conversion for
-     *
-     * @return price    : price of the oracle
-     * @return decimal  : decimal of the price oracle
-     */
-    function getDataFeed(IERC20 _token)
-        external
-        view
-        returns (int256 price, uint256 decimals)
-    {
-        address atOracle = pools[_token].oracle;
-        require(atOracle != address(0), "DataFeed not available");
-
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
-        (
-            /*uint80 roundID*/,
-            int256 aggregatorPrice,
-            /*uint startedAt*/,
-            /*uint timeStamp*/,
-            /*uint80 answeredInRound*/
-        ) = priceFeed.latestRoundData();
-        return (aggregatorPrice, pools[_token].decimalOracle);
-    }
-
-    /*
-     * @notice claim rewards
-     *
-     * @param _token  : token address of the pool to get the reward for
-     *
-     * @emits Claim see _claim function
-     */
-    function claim(IStackedERC20 _token) external {
-        _claim(_token, msg.sender);
+        pool.rewardPerShare =
+        pool.rewardPerShare +
+        ((pendingRewards * 1e12) / pool.balance);
+        pool.lastRewardBlock = currentRewardBlock;
     }
 
     /*
