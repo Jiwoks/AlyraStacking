@@ -13,6 +13,6 @@ contract Faucet is ERC20 {
     function faucet() public {
         require(block.timestamp > lastMint[msg.sender], "Can only mint 1 ether per hour");
         lastMint[msg.sender] = block.timestamp + 1 hours;
-        _mint(msg.sender, 1 ether);
+        _mint(msg.sender, 100 ether);
     }
 }
