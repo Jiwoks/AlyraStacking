@@ -42,35 +42,35 @@ contract Stacking is Ownable {
     IStackedERC20 private rewardToken;
 
     /**
-    * @notice mapping of pools available
-    */
+     * @notice mapping of pools available
+     */
     mapping(IERC20 => Pool) public pools;
 
     /**
-    * @notice user mapping of pools data mapping
-    *
-    * @dev [msg.sender][token] = {balance, rewardDebt, rewardPending}
-    */
+     * @notice user mapping of pools data mapping
+     *
+     * @dev [msg.sender][token] = {balance, rewardDebt, rewardPending}
+     */
     mapping(address => mapping(IERC20 => Account)) public accounts;
 
     /**
-    * @notice Event triggered when a new pool is created
-    */
+     * @notice Event triggered when a new pool is created
+     */
     event PoolCreated(IERC20 token, address oracle, string symbol);
 
     /**
-    * @notice Event triggered when a user deposit a token in a pool
-    */
+     * @notice Event triggered when a user deposit a token in a pool
+     */
     event Deposit(IERC20 token, address account, uint256 amount);
 
     /**
-    * @notice Event triggered when a user withdraw a token from a pool
-    */
+     * @notice Event triggered when a user withdraw a token from a pool
+     */
     event Withdraw(IERC20 token, address account, uint256 amount);
 
     /**
-    * @notice Event triggered when a user claim his rewards
-    */
+     * @notice Event triggered when a user claim his rewards
+     */
     event Claim(address account, uint256 amount);
 
     /**
@@ -84,8 +84,8 @@ contract Stacking is Ownable {
     }
 
     /**
-    * @dev Contructor, requires an address of the reward token
-    */
+     * @dev Contructor, requires an address of the reward token
+     */
     constructor(IStackedERC20 _rewardToken) {
         rewardToken = _rewardToken;
     }
@@ -205,7 +205,7 @@ contract Stacking is Ownable {
      *
      * @emits Claim see _claim function
      */
-    function claim(IStackedERC20 _token) onlyCreatedToken(_token) external {
+    function claim(IStackedERC20 _token) external onlyCreatedToken(_token) {
         _claim(_token, msg.sender);
     }
 
@@ -218,10 +218,10 @@ contract Stacking is Ownable {
      * @return the pending reward
      */
     function claimable(IERC20 _token, address _user)
-    onlyCreatedToken(_token)
-    external
-    view
-    returns (uint256 rewards)
+        external
+        view
+        onlyCreatedToken(_token)
+        returns (uint256 rewards)
     {
         Pool memory pool = pools[_token];
         Account memory account = accounts[_user][_token];
@@ -231,18 +231,18 @@ contract Stacking is Ownable {
         uint256 rewardPerShare;
         if (pool.balance > 0) {
             poolPendingRewards =
-            (block.timestamp - pool.lastRewardBlock) *
-            pool.rewardPerSecond;
+                (block.timestamp - pool.lastRewardBlock) *
+                pool.rewardPerSecond;
             rewardPerShare =
-            pool.rewardPerShare +
-            ((poolPendingRewards * 1e12) / pool.balance);
+                pool.rewardPerShare +
+                ((poolPendingRewards * 1e12) / pool.balance);
         }
 
         return
-        (account.balance * rewardPerShare) /
-        1e12 -
-        account.rewardDebt +
-        account.rewardPending;
+            (account.balance * rewardPerShare) /
+            1e12 -
+            account.rewardDebt +
+            account.rewardPending;
     }
 
     /*
@@ -254,9 +254,9 @@ contract Stacking is Ownable {
      * @return decimal  : decimal of the price oracle
      */
     function getDataFeed(IERC20 _token)
-    external
-    view
-    returns (int256 price, uint256 decimals)
+        external
+        view
+        returns (int256 price, uint256 decimals)
     {
         address atOracle = pools[_token].oracle;
         require(atOracle != address(0), "DataFeed not available");
@@ -271,7 +271,6 @@ contract Stacking is Ownable {
         ) = priceFeed.latestRoundData();
         return (aggregatorPrice, pools[_token].decimalOracle);
     }
-
 
     /**
      * @dev mint the token needed for send using the mint methods of the ERC20.
@@ -302,11 +301,11 @@ contract Stacking is Ownable {
 
         // Calculate pending rewards for the incentive token
         uint256 pendingRewards = (currentRewardBlock - pool.lastRewardBlock) *
-        pool.rewardPerSecond;
+            pool.rewardPerSecond;
 
         pool.rewardPerShare =
-        pool.rewardPerShare +
-        ((pendingRewards * 1e12) / pool.balance);
+            pool.rewardPerShare +
+            ((pendingRewards * 1e12) / pool.balance);
         pool.lastRewardBlock = currentRewardBlock;
     }
 

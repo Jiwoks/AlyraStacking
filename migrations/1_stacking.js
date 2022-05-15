@@ -32,14 +32,17 @@ module.exports = async (deployer, network, account) => {
   await myERC20.allowAdmin(myStacking.address);
 
   if (network === 'development') {
-    await deployer.deploy(MockOracleDAI, ['18', '1', 'Mock Oracle DAI']);
+
+    await deployProxy(MockOracleDAI, ['18', '1', 'Mock Oracle DAI'], {deployer, initializer: 'store'});
     const myMockOracleDAI = await MockOracleDAI.deployed();
     await myMockOracleDAI.setData('100376540');
-    await deployer.deploy(MockOracleLINK, ['18', '1', 'Mock Oracle LINK']);
+    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
+
+    await deployProxy(MockOracleLINK, ['18', '1', 'Mock Oracle LINK'], {deployer, initializer: 'store'});
     const myMockOracleLINK = await MockOracleLINK.deployed();
     await myMockOracleLINK.setData('707782127');
-    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
     await myStacking.createPool(link.address, myMockOracleLINK.address, '8', web3.utils.toWei('5'), 'LINK.c');
+
   } else if (network === 'kovan') {
     await myStacking.createPool(dai.address, '0x777A68032a88E5A84678A77Af2CD65A7b3c0775a', '8', web3.utils.toWei('5'), 'DAI.c');
     await myStacking.createPool(link.address, '0x396c5E36DD0a0F5a5D33dae44368D4193f69a1F0', '8', web3.utils.toWei('5'), 'LINK.c');
