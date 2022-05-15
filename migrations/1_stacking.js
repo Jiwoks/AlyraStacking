@@ -1,14 +1,6 @@
 const path = require('path');
 const web3 = require('web3');
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
-const StorageV1 = artifacts.require("StorageV1");
-
-module.exports = async function (deployer) {
-  const instance = await deployProxy(StorageV1, [3], {deployer, initializer: 'store'});
-
-  console.log('Deployed address:', instance.address);
-};
-
 
 require('dotenv').config({
   path: path.resolve(__dirname, '../.env')
@@ -24,31 +16,29 @@ const MockOracleLINK = artifacts.require("./MockOracle.sol");
 
 module.exports = async (deployer, network, account) => {
 
-  await deployProxy(CCTToken, web3.utils.toWei('1000000'), {deployer, initializer: 'store'});
+  await deployProxy(CCTToken, [web3.utils.toWei('1000000')], {deployer, initializer: 'store'});
   const myERC20 = await CCTToken.deployed();
 
-  await deployProxy(Dai, web3.utils.toWei('1000000'), {deployer, initializer: 'store'});
+  await deployProxy(Dai, [web3.utils.toWei('1000000')], {deployer, initializer: 'store'});
   const dai = await Dai.deployed();
 
-  await deployProxy(Link, web3.utils.toWei('1000000'), {deployer, initializer: 'store'});
+  await deployProxy(Link, [web3.utils.toWei('1000000')], {deployer, initializer: 'store'});
   const link = await Link.deployed();
 
-  await deployProxy(Stacking, myERC20.address, {deployer, initializer: 'store'});
+  await deployProxy(Stacking, [myERC20.address], {deployer, initializer: 'store'});
   const myStacking = await Stacking.deployed();
 
   // Allow stacking contract to mint CCT Token
   await myERC20.allowAdmin(myStacking.address);
 
   if (network === 'development') {
-    await deployProxy(MockOracleDAI, '18', '1', 'Mock Oracle DAI', {deployer, initializer: 'store'});
-    // await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
+    await deployer.deploy(MockOracleDAI, ['18', '1', 'Mock Oracle DAI']);
     const myMockOracleDAI = await MockOracleDAI.deployed();
-    await deployProxy(MockOracleLINK, '18', '1', 'Mock Oracle LINK', {deployer, initializer: 'store'});
-    // await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
-    const myMockOracleLINK = await MockOracleLINK.deployed();
     await myMockOracleDAI.setData('100376540');
-    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
+    await deployer.deploy(MockOracleLINK, ['18', '1', 'Mock Oracle LINK']);
+    const myMockOracleLINK = await MockOracleLINK.deployed();
     await myMockOracleLINK.setData('707782127');
+    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
     await myStacking.createPool(link.address, myMockOracleLINK.address, '8', web3.utils.toWei('5'), 'LINK.c');
   } else if (network === 'kovan') {
     await myStacking.createPool(dai.address, '0x777A68032a88E5A84678A77Af2CD65A7b3c0775a', '8', web3.utils.toWei('5'), 'DAI.c');
