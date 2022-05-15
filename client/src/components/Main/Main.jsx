@@ -2,13 +2,12 @@ import React, {useEffect, useState} from 'react';
 import Header from "../Header/Header";
 import "./Main.css";
 import Pools from "./Pools/Pools";
-import Fab from "@mui/material/Fab";
 import AddIcon from '@mui/icons-material/Add';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import {isOwner} from "../../helpers/contract";
 import walletStore from "../../stores/wallet";
 import NewPool from "./Pools/NewPool/NewPool";
-import {Dialog} from "@mui/material";
+import {Dialog, SpeedDial, SpeedDialAction, SpeedDialIcon} from "@mui/material";
 import Mint from "./Mint/Mint";
 
 function Main() {
@@ -39,14 +38,26 @@ function Main() {
             <div className="Content">
                 <Pools />
             </div>
-            {isAdmin &&
-                <Fab className="MainAddPool" color="inverse" aria-label="add" onClick={handleClickAddPool}>
-                    <AddIcon />
-                </Fab>
-            }
-            <Fab className="MainMint" color="inverse" aria-label="add" onClick={handleClickMint}>
-                <AddCardIcon />
-            </Fab>
+
+            <SpeedDial
+                ariaLabel="Menu"
+                sx={{ position: 'absolute', bottom: 16, right: 16 }}
+                icon={<SpeedDialIcon />}
+            >
+                {isAdmin &&
+                    <SpeedDialAction
+                        icon={<AddIcon/>}
+                        tooltipTitle="Add pool"
+                        onClick={handleClickAddPool}
+                    />
+                }
+
+                <SpeedDialAction
+                    icon={<AddCardIcon/>}
+                    tooltipTitle="Faucet"
+                    onClick={handleClickMint}
+                />
+            </SpeedDial>
 
             {popupOpened !== '' &&
                 <Dialog
