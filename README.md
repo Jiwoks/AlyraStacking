@@ -9,6 +9,9 @@
     - [Your DApp must allow](#Your-DApp-must-allow)
     - [Recommendations and requirements](#Recommendations-and-requirements)
 - [Rendered](#Rendered)
+- [Various explanations](#Various-explanations)
+    - [Using chainlink](#Using-chainlink)
+    - [Rewards calculation](#Rewards-calculation)
 - [Tests result](#Tests-result)
 - [Team](#Team)
 
@@ -53,7 +56,6 @@ Contract address on kovan: ****
 - [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
 - [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
 - [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
-- [Video Front]()
 - [Video SmartContracts]()
 - [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
 - [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
@@ -91,6 +93,8 @@ function getDataFeed(IERC20 _token)
   ```
 *As a reminder, our pool structure contains a variable with the address of the linked oracle during the creation of the pool.<br>
 **This arguments is obligatory***
+
+### Rewards calculation:
 
 ## Tests result
 
