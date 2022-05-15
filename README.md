@@ -54,7 +54,7 @@ Contract address on kovan: ****
 - [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
 - [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
 - [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
-- [Video SmartContracts]()
+- [Video SmartContracts](https://www.loom.com/share/f3e323b94bd947afa9641e8155f0f7e5)
 - [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
 - [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
 
