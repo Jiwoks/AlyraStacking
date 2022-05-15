@@ -120,7 +120,7 @@ function Pool({pool, ...props}) {
      * @param value
      * @return {string|boolean}
      */
-    const calcETH = (value) => {
+    const calValue = (value) => {
         if (!dataFeed) {
             return false;
         }
@@ -129,9 +129,9 @@ function Pool({pool, ...props}) {
             return false;
         }
 
-        const convertedValue = new web3js.utils.BN(dataFeed.price).mul(new web3js.utils.BN(value)).div(new web3js.utils.BN(Math.pow(10, parseInt(dataFeed.decimals))))
+        const convertedValue = new web3js.utils.BN(dataFeed.price).mul(new web3js.utils.BN(parseFloat(value))).div(new web3js.utils.BN(Math.pow(10, parseInt(dataFeed.decimals))))
 
-        return '$' + parseFloat(convertedValue).toFixed(2);
+        return '$' + parseFloat(convertedValue).toLocaleString();
     }
 
     let claimable = valueClaimable;
@@ -151,18 +151,18 @@ function Pool({pool, ...props}) {
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
-                    <div>{walletAmount}</div>
-                    {calcETH(walletAmount) !== false && <div>({calcETH(walletAmount)})</div>}
+                    <div>{parseFloat(walletAmount).toLocaleString()}</div>
+                    {calValue(walletAmount) !== false && <div>({calValue(walletAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Stacked</div>
-                    <div>{depositedAmount}</div>
-                    {calcETH(depositedAmount) !== false && <div>({calcETH(depositedAmount)})</div>}
+                    <div>{parseFloat(depositedAmount).toLocaleString()}</div>
+                    {calValue(depositedAmount) !== false && <div>({calValue(depositedAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
-                    <div>{tvl}</div>
-                    {calcETH(tvl) !== false && <div>({calcETH(tvl)})</div>}
+                    <div>{parseFloat(tvl).toLocaleString()}</div>
+                    {calValue(tvl) !== false && <div>({calValue(tvl)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Pending Rewards</div>
