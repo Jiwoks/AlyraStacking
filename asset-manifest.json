@@ -1,30 +1,29 @@
 {
   "files": {
-    "main.css": "/AlyraStacking/static/css/main.8a06b719.chunk.css",
-    "main.js": "/AlyraStacking/static/js/main.2b35cbe4.chunk.js",
-    "main.js.map": "/AlyraStacking/static/js/main.2b35cbe4.chunk.js.map",
+    "main.css": "/AlyraStacking/static/css/main.db472811.chunk.css",
+    "main.js": "/AlyraStacking/static/js/main.4dd7d230.chunk.js",
+    "main.js.map": "/AlyraStacking/static/js/main.4dd7d230.chunk.js.map",
     "runtime-main.js": "/AlyraStacking/static/js/runtime-main.7b4ca9c6.js",
     "runtime-main.js.map": "/AlyraStacking/static/js/runtime-main.7b4ca9c6.js.map",
     "static/css/2.8db31ad3.chunk.css": "/AlyraStacking/static/css/2.8db31ad3.chunk.css",
-    "static/js/2.d937a743.chunk.js": "/AlyraStacking/static/js/2.d937a743.chunk.js",
-    "static/js/2.d937a743.chunk.js.map": "/AlyraStacking/static/js/2.d937a743.chunk.js.map",
+    "static/js/2.35f4bff3.chunk.js": "/AlyraStacking/static/js/2.35f4bff3.chunk.js",
+    "static/js/2.35f4bff3.chunk.js.map": "/AlyraStacking/static/js/2.35f4bff3.chunk.js.map",
     "index.html": "/AlyraStacking/index.html",
-    "precache-manifest.38a31d2a530b2e72b456f75ed1cb7b29.js": "/AlyraStacking/precache-manifest.38a31d2a530b2e72b456f75ed1cb7b29.js",
+    "precache-manifest.0c3d6572132f1c06b2597fc80b8a9a2d.js": "/AlyraStacking/precache-manifest.0c3d6572132f1c06b2597fc80b8a9a2d.js",
     "service-worker.js": "/AlyraStacking/service-worker.js",
     "static/css/2.8db31ad3.chunk.css.map": "/AlyraStacking/static/css/2.8db31ad3.chunk.css.map",
-    "static/css/main.8a06b719.chunk.css.map": "/AlyraStacking/static/css/main.8a06b719.chunk.css.map",
+    "static/css/main.db472811.chunk.css.map": "/AlyraStacking/static/css/main.db472811.chunk.css.map",
     "static/media/arrow_down.265e9d0c.svg": "/AlyraStacking/static/media/arrow_down.265e9d0c.svg",
     "static/media/arrow_up.07574635.svg": "/AlyraStacking/static/media/arrow_up.07574635.svg",
-    "static/media/Main.css": "/AlyraStacking/static/media/background.48ac81c7.svg",
-    "static/media/metamask.16232b09.svg": "/AlyraStacking/static/media/metamask.16232b09.svg",
     "static/media/index.css": "/AlyraStacking/static/media/roboto-vietnamese-400-normal.ca3b09b6.woff2",
+    "static/media/metamask.16232b09.svg": "/AlyraStacking/static/media/metamask.16232b09.svg",
     "static/media/title.18aa01d5.svg": "/AlyraStacking/static/media/title.18aa01d5.svg"
   },
   "entrypoints": [
     "static/js/runtime-main.7b4ca9c6.js",
     "static/css/2.8db31ad3.chunk.css",
-    "static/js/2.d937a743.chunk.js",
-    "static/css/main.8a06b719.chunk.css",
-    "static/js/main.2b35cbe4.chunk.js"
+    "static/js/2.35f4bff3.chunk.js",
+    "static/css/main.db472811.chunk.css",
+    "static/js/main.4dd7d230.chunk.js"
   ]
 }
