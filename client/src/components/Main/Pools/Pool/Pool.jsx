@@ -142,6 +142,10 @@ function Pool({pool, ...props}) {
         claimable = claimable.toFixed(2);
     }
 
+    const displayWalletAmount = parseFloat(walletAmount) ? parseFloat(walletAmount).toLocaleString() : '0';
+    const displayDepositedAmount = parseFloat(depositedAmount) ? parseFloat(depositedAmount).toLocaleString() : '0';
+    const displayTvl = parseFloat(tvl) ? parseFloat(tvl).toLocaleString() : '0';
+
     return (
         <div className="Pool">
             <div className="PoolInfos" onClick={handleClick}>
@@ -151,17 +155,17 @@ function Pool({pool, ...props}) {
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Wallet</div>
-                    <div>{parseFloat(walletAmount).toLocaleString()}</div>
+                    <div>{displayWalletAmount}</div>
                     {calValue(walletAmount) !== false && <div>({calValue(walletAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">Stacked</div>
-                    <div>{parseFloat(depositedAmount).toLocaleString()}</div>
+                    <div>{displayDepositedAmount}</div>
                     {calValue(depositedAmount) !== false && <div>({calValue(depositedAmount)})</div>}
                 </div>
                 <div className="PoolColumn">
                     <div className="PoolColumnTitle">TVL</div>
-                    <div>{parseFloat(tvl).toLocaleString()}</div>
+                    <div>{displayTvl}</div>
                     {calValue(tvl) !== false && <div>({calValue(tvl)})</div>}
                 </div>
                 <div className="PoolColumn">

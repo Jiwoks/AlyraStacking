@@ -36,7 +36,7 @@ function Operation({availableTitle, availableAmount, availableTokenName, handleC
     return (
         <div className="Operation">
             <h2>{props.title}</h2>
-            {availableTitle} {availableAmount} {availableTokenName}
+            {availableTitle} {parseFloat(availableAmount).toLocaleString()} {availableTokenName}
             <AmountInput handleFocusCapture={handleFocusCapture} handleChange={handleChange} onClick={handleClickMax} value={value}/>
             <Button className="OperationButton" variant="contained" disabled={value<=0 || walletAddress === null} onClick={handleClick} >{actionTitle}</Button>
         </div>
