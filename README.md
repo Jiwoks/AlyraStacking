@@ -17,8 +17,6 @@
 
 ---
 
----
-
 ## Subject
 
 Create a DApp that allows stacking !
@@ -67,7 +65,7 @@ We used the chainlink oracle to have the conversion of tokens into USD ([dataFee
 Although this could be done directly in the front we implemented a function in the smart contract to retrieve this information.<br>
 We therefore use the aggregator proposed by chainlink [AggregatorV3Interface.sol](https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol)
 
-  ```javascript
+  ```solidity
 ...
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 ...
@@ -95,6 +93,10 @@ function getDataFeed(IERC20 _token)
 **This arguments is obligatory***
 
 ### Rewards calculation:
+
+```solidity
+
+```
 
 ## Tests result
 
