@@ -24,8 +24,8 @@ module.exports = async (deployer, network, account) => {
   await deployer.deploy(Link, web3.utils.toWei('1000000'));
   const link = await Link.deployed();
 
-  // await deployer.deploy(Usdt, web3.utils.toWei('1000000'));
-  // await Usdt.deployed();
+  await deployer.deploy(Usdt, web3.utils.toWei('1000000'));
+  await Usdt.deployed();
 
   await deployer.deploy(Stacking, myERC20.address);
   const myStacking = await Stacking.deployed();
