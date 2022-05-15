@@ -27,3 +27,8 @@
     bottom: 90px;
     right: 20px;
 }
+
+:root {
+    --toastify-color-progress-success: #63af79 !important;
+    --toastify-icon-color-success: #63af79 !important;;
+}
