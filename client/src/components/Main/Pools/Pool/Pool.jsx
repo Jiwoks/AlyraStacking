@@ -87,6 +87,9 @@ function Pool({pool, ...props}) {
 
     useEffect(() => {
         if (!walletAddress) {
+            setWalletAmount('-');
+            setDepositedAmount('-');
+            setValueClaimable(0);
             return;
         }
 
