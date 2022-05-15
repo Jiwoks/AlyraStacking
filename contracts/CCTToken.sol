@@ -31,7 +31,7 @@ contract CCTToken is IStackedERC20, ERC20, Ownable {
         _mint(msg.sender, initialSupply);
     }
 
-    /*
+    /**
      * @notice Mint this custom token
      * @dev Only the owner or allowed admins can mint token
      *
@@ -42,7 +42,7 @@ contract CCTToken is IStackedERC20, ERC20, Ownable {
         _mint(msg.sender, _amount);
     }
 
-    /*
+    /**
      * @notice Mark the admin address as allowed
      * @dev Only the owner can allow admins
      * @dev Only the owner or allowed admins can access some methods
@@ -56,7 +56,7 @@ contract CCTToken is IStackedERC20, ERC20, Ownable {
         emit AdminAllowed(_admin);
     }
 
-    /*
+    /**
      * @notice Mark the admin address as revoked
      * @dev Only the owner can revoke admins
      *
