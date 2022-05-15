@@ -5,10 +5,10 @@
 ## Table of contents
 
 - [TOC](#Table-of-contents)
+- [Rendered](#Rendered)
 - [Subject](#Subject)
     - [Your DApp must allow](#Your-DApp-must-allow)
     - [Recommendations and requirements](#Recommendations-and-requirements)
-- [Rendered](#Rendered)
 - [Various explanations](#Various-explanations)
     - [Using chainlink](#Using-chainlink)
     - [Rewards calculation](#Rewards-calculation)
@@ -16,6 +16,17 @@
 - [Team](#Team)
 
 ---
+
+## **Rendered**
+
+Contract address on kovan: ****
+
+- [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
+- [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
+- [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
+- [Video SmartContracts](https://www.loom.com/share/f3e323b94bd947afa9641e8155f0f7e5)
+- [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
+- [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
 
 ## Subject
 
@@ -46,17 +57,6 @@ Create a DApp that allows stacking !
 - [x] Using the Chainlink Oracle
 - [x] The protocol should allow any staked crypto to be translated into a "main" unit(USDC, ETH, whatever).
 - [x] The rewards are made in token of the protocol (created therefore), and they are based on the value locked in the protocol by a user on a token on ( / ) the complete value locked on this token
-
-## **Rendered**
-
-Contract address on kovan: ****
-
-- [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
-- [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
-- [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
-- [Video SmartContracts](https://www.loom.com/share/f3e323b94bd947afa9641e8155f0f7e5)
-- [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
-- [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
 
 ## **Various explanations**
 
