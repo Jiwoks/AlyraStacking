@@ -26,7 +26,8 @@ module.exports = {
             port: 8545,
             network_id: "*",
             from: process.env.OWNER_ADDRESS,
-            gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
+            gas: 8500000,
+            skipDryRun: true
         },
         ropsten: {
             provider: () => provider_set(process.env.RPCROPSTEN),
