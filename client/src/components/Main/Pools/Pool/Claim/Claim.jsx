@@ -13,9 +13,9 @@ function Claim({pool, claimable, ...props}) {
         await toast.promise(
             claim(walletAddress, pool.token),
             {
-                pending: 'Deposit pending',
-                success: 'Deposit executed 👌',
-                error: 'Deposit failed'
+                pending: 'Claim pending',
+                success: 'Claim executed 👌',
+                error: 'Claim failed'
             }
         );
     }
