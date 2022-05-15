@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/AlyraStacking/static/css/main.ab70b45f.chunk.css",
-    "main.js": "/AlyraStacking/static/js/main.a84b7812.chunk.js",
-    "main.js.map": "/AlyraStacking/static/js/main.a84b7812.chunk.js.map",
+    "main.js": "/AlyraStacking/static/js/main.1418cefd.chunk.js",
+    "main.js.map": "/AlyraStacking/static/js/main.1418cefd.chunk.js.map",
     "runtime-main.js": "/AlyraStacking/static/js/runtime-main.971eaebe.js",
     "runtime-main.js.map": "/AlyraStacking/static/js/runtime-main.971eaebe.js.map",
     "static/css/2.64e6342c.chunk.css": "/AlyraStacking/static/css/2.64e6342c.chunk.css",
     "static/js/2.1071b470.chunk.js": "/AlyraStacking/static/js/2.1071b470.chunk.js",
     "static/js/2.1071b470.chunk.js.map": "/AlyraStacking/static/js/2.1071b470.chunk.js.map",
     "index.html": "/AlyraStacking/index.html",
-    "precache-manifest.6754c456133a2294e320657fa00045cd.js": "/AlyraStacking/precache-manifest.6754c456133a2294e320657fa00045cd.js",
+    "precache-manifest.207af37a3845f639df4f561522874528.js": "/AlyraStacking/precache-manifest.207af37a3845f639df4f561522874528.js",
     "service-worker.js": "/AlyraStacking/service-worker.js",
     "static/css/2.64e6342c.chunk.css.map": "/AlyraStacking/static/css/2.64e6342c.chunk.css.map",
     "static/css/main.ab70b45f.chunk.css.map": "/AlyraStacking/static/css/main.ab70b45f.chunk.css.map",
@@ -25,6 +25,6 @@
     "static/css/2.64e6342c.chunk.css",
     "static/js/2.1071b470.chunk.js",
     "static/css/main.ab70b45f.chunk.css",
-    "static/js/main.a84b7812.chunk.js"
+    "static/js/main.1418cefd.chunk.js"
   ]
 }
