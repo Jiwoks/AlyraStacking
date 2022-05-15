@@ -8,7 +8,7 @@
 - [Subject](#Subject)
     - [Your DApp must allow](#Your-DApp-must-allow)
     - [Recommendations and requirements](#Recommendations-and-requirements)
-    - [To give back](#To-give-back)
+- [Rendered](#Rendered)
 - [Team](#Team)
 
 ---
@@ -45,15 +45,48 @@ Create a DApp that allows stacking !
 - [x] The protocol should allow any staked crypto to be translated into a "main" unit(USDC, ETH, whatever).
 - [x] The rewards are made in token of the protocol (created therefore), and they are based on the value locked in the protocol by a user on a token on ( / ) the complete value locked on this token
 
-### **To give back :**
+## **Rendered**
 
 - [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
-- [Link to dApp in test network]()
-- [Video Front]()
+- [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
+- [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
 - [Video SmartContracts]()
-- [Video TestUnits]()
-- [Organization]()
+- [Video Organization](https://www.loom.com/share/1ffe5aa745b0472390e2526b0acba9df)
+- [Notion Organization](https://tonted.notion.site/DeFi-Stacking-144e7e2465d8439f9cf62845f590a527)
 
+## **Various explanations**
+
+### Using chainlink:
+We used the chainlink oracle to have the conversion of tokens into USD ([dataFeeds](https://docs.chain.link/docs/ethereum-addresses/)).<br>
+Although this could be done directly in the front we implemented a function in the smart contract to retrieve this information.<br>
+We therefore use the aggregator proposed by chainlink [AggregatorV3Interface.sol](https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol)
+
+  ```javascript
+...
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+...
+
+function getDataFeed(IERC20 _token)
+    external
+    view
+    returns (int256 price, uint256 decimals)
+    {
+        address atOracle = pools[_token].oracle;
+        require(atOracle != address(0), "DataFeed not available");
+    
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(atOracle);
+        (
+            /*uint80 roundID*/,
+            int256 aggregatorPrice,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = priceFeed.latestRoundData();
+        return (aggregatorPrice, pools[_token].decimalOracle);
+    }
+  ```
+*As a reminder, our pool structure contains a variable with the address of the linked oracle during the creation of the pool.<br>
+**This arguments is obligatory***
 
 ## Team:
 Damien Barrere [github](https://github.com/Jiwoks)
