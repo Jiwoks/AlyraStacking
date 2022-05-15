@@ -1,0 +1,30 @@
+{
+  "files": {
+    "main.css": "/AlyraStacking/static/css/main.ab70b45f.chunk.css",
+    "main.js": "/AlyraStacking/static/js/main.f062684e.chunk.js",
+    "main.js.map": "/AlyraStacking/static/js/main.f062684e.chunk.js.map",
+    "runtime-main.js": "/AlyraStacking/static/js/runtime-main.971eaebe.js",
+    "runtime-main.js.map": "/AlyraStacking/static/js/runtime-main.971eaebe.js.map",
+    "static/css/2.64e6342c.chunk.css": "/AlyraStacking/static/css/2.64e6342c.chunk.css",
+    "static/js/2.1071b470.chunk.js": "/AlyraStacking/static/js/2.1071b470.chunk.js",
+    "static/js/2.1071b470.chunk.js.map": "/AlyraStacking/static/js/2.1071b470.chunk.js.map",
+    "index.html": "/AlyraStacking/index.html",
+    "precache-manifest.b6821631c57665188bfd102a813628f3.js": "/AlyraStacking/precache-manifest.b6821631c57665188bfd102a813628f3.js",
+    "service-worker.js": "/AlyraStacking/service-worker.js",
+    "static/css/2.64e6342c.chunk.css.map": "/AlyraStacking/static/css/2.64e6342c.chunk.css.map",
+    "static/css/main.ab70b45f.chunk.css.map": "/AlyraStacking/static/css/main.ab70b45f.chunk.css.map",
+    "static/media/arrow_down.265e9d0c.svg": "/AlyraStacking/static/media/arrow_down.265e9d0c.svg",
+    "static/media/arrow_up.07574635.svg": "/AlyraStacking/static/media/arrow_up.07574635.svg",
+    "static/media/Main.css": "/AlyraStacking/static/media/background.48ac81c7.svg",
+    "static/media/metamask.16232b09.svg": "/AlyraStacking/static/media/metamask.16232b09.svg",
+    "static/media/index.css": "/AlyraStacking/static/media/roboto-vietnamese-400-normal.756af8e5.woff2",
+    "static/media/title.18aa01d5.svg": "/AlyraStacking/static/media/title.18aa01d5.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.971eaebe.js",
+    "static/css/2.64e6342c.chunk.css",
+    "static/js/2.1071b470.chunk.js",
+    "static/css/main.ab70b45f.chunk.css",
+    "static/js/main.f062684e.chunk.js"
+  ]
+}
