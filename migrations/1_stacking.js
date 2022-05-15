@@ -36,11 +36,11 @@ module.exports = async (deployer, network, account) => {
   if (network === 'development') {
     await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
     const myMockOracleDAI = await MockOracleDAI.deployed();
-    await deployer.deploy(MockOracleDAI, '18', '1', 'Mock Oracle DAI');
-    const myMockOracleLINK = await MockOracleLINK.deployed();
     await myMockOracleDAI.setData('100376540');
-    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
+    await deployer.deploy(MockOracleLINK, '18', '1', 'Mock Oracle LINK');
+    const myMockOracleLINK = await MockOracleLINK.deployed();
     await myMockOracleLINK.setData('707782127');
+    await myStacking.createPool(dai.address, myMockOracleDAI.address,'8', web3.utils.toWei('5'), 'DAI.c');
     await myStacking.createPool(link.address, myMockOracleLINK.address, '8', web3.utils.toWei('5'), 'LINK.c');
   } else if (network === 'kovan') {
     await myStacking.createPool(dai.address, '0x777A68032a88E5A84678A77Af2CD65A7b3c0775a', '8', web3.utils.toWei('5'), 'DAI.c');
