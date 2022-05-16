@@ -60,8 +60,6 @@ Create a DApp that allows stacking !
 
 ## **Rendered**
 
-Contract address on kovan: ****
-
 - [Link to your Github repository](https://github.com/Jiwoks/AlyraStacking)
 - [Link to dApp in test network](https://jiwoks.github.io/AlyraStacking/)
 - [Video Front](https://www.loom.com/share/cc26c41da6c44bf4ab79e3a88adbcf16)
@@ -182,10 +180,6 @@ function _claim(IStackedERC20 _token, address _to) internal {
 }
 ```
 
-```solidity
-
-```
-
 ## Tests result
 
 ```
@@ -287,6 +281,6 @@ All files      |      100 |      100 |      100 |      100 |                |
 ![Coverage](./assets/coverage.png)
 
 ## Team:
-Damien Barrere [github](https://github.com/Jiwoks)
-Michael Petit [github](https://github.com/mickpetit)
-Teddy Blanco [github](https://github.com/tonTed)
+Damien Barrere [github](https://github.com/Jiwoks)<br>
+Michael Petit [github](https://github.com/mickpetit)<br>
+Teddy Blanco [github](https://github.com/tonTed)<br>
